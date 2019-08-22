@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="authFailLogger" class="com.spring.core.di.AuthFailLogger">
+        <property name="threshold" value="3"/>
+    </bean>
+
+    <bean id="userRepository" class="com.spring.core.di.UserRepository">
+        <property name="users">
+            <list>
+                <ref bean="user1"></ref>
+                <ref bean="user2"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="authenticationService" class="com.spring.core.di.AuthenticationService">
+        <property name="failLogger" ref="authFailLogger"/>
+        <property name="userRepository" ref="userRepository"/>
+    </bean>
+
+    <bean id="passwordChangeService" class="com.spring.core.di.PasswordChangeService">
+        <constructor-arg ref="userRepository"/>
+    </bean>
+
+    <bean id="user1" class="com.spring.core.di.User">
+        <constructor-arg value="jongmo"/>
+        <constructor-arg value="1234"/>
+    </bean>
+
+    <bean id="user2" class="com.spring.core.di.User">
+        <constructor-arg value="kim"/>
+        <constructor-arg value="1234"/>
+    </bean>
+
+</beans>
