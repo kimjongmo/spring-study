@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
        xmlns:p="http://www.springframework.org/schema/p"
        xmlns:c="http://www.springframework.org/schema/c"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean id="authFailLogger" class="com.spring.core.di.AuthFailLogger" p:threshold="3"/>
 
-    <bean id="userRepository" class="com.spring.core.di.UserRepository">
-        <property name="users">
-            <list>
-                <ref bean="user1"></ref>
-                <ref bean="user2"></ref>
-            </list>
-        </property>
-    </bean>
+    <context:annotation-config/>
 
-    <bean id="authenticationService" class="com.spring.core.di.AuthenticationService"
-          p:failLogger-ref="authFailLogger" p:userRepository-ref="userRepository"/>
+    <bean class="com.spring.core.di.config.Config"/>
+    <!--<bean id="authFailLogger" class="com.spring.core.di.AuthFailLogger" p:threshold="4"/>-->
 
-    <bean id="passwordChangeService" class="com.spring.core.di.PasswordChangeService" c:userRepository-ref="userRepository"/>
+    <!--<bean id="userRepository" class="com.spring.core.di.UserRepository">-->
+        <!--<property name="users">-->
+            <!--<list>-->
+                <!--<ref bean="user1"></ref>-->
+                <!--<ref bean="user2"></ref>-->
+            <!--</list>-->
+        <!--</property>-->
+    <!--</bean>-->
 
-    <bean id="user1" class="com.spring.core.di.User" c:id="jongmo" c:password="1234"/>
+    <!--<bean id="authenticationService" class="com.spring.core.di.AuthenticationService"-->
+          <!--p:failLogger-ref="authFailLogger" p:userRepository-ref="userRepository"/>-->
 
-    <bean id="user2" class="com.spring.core.di.User" c:id="kim" c:password="1234"/>
+    <!--<bean id="passwordChangeService" class="com.spring.core.di.PasswordChangeService" c:userRepository-ref="userRepository"/>-->
+
+    <!--<bean id="user1" class="com.spring.core.di.User" c:id="jongmo" c:password="1234"/>-->
+
+    <!--<bean id="user2" class="com.spring.core.di.User" c:id="kim" c:password="1234"/>-->
 
 </beans>

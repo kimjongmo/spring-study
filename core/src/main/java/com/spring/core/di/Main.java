@@ -1,6 +1,8 @@
 package com.spring.core.di;
 
+import com.spring.core.di.config.Config;
 import com.spring.core.di.exception.UserNotFoundException;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 public class Main {
@@ -8,6 +10,11 @@ public class Main {
 
         GenericXmlApplicationContext ctx =
                 new GenericXmlApplicationContext("classpath:spring-di.xml");
+//        AnnotationConfigApplicationContext ctx =
+//                new AnnotationConfigApplicationContext(Config.class);
+//        AnnotationConfigApplicationContext ctx =
+//                new AnnotationConfigApplicationContext("com.spring.core.di.config");
+
 
         AuthFailLogger logger = ctx.getBean("authFailLogger",AuthFailLogger.class);
         AuthenticationService authenticationService = ctx.getBean("authenticationService",AuthenticationService.class);
