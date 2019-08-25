@@ -1,6 +1,7 @@
 package com.spring.core.di;
 
 import com.spring.core.di.config.Config;
+import com.spring.core.di.config.ConfigWithXMLImport;
 import com.spring.core.di.exception.UserNotFoundException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -8,10 +9,10 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 public class Main {
     public static void main(String[] args) {
 
-        GenericXmlApplicationContext ctx =
-                new GenericXmlApplicationContext("classpath:spring-di.xml");
-//        AnnotationConfigApplicationContext ctx =
-//                new AnnotationConfigApplicationContext(Config.class);
+//        GenericXmlApplicationContext ctx =
+//                new GenericXmlApplicationContext("classpath:spring-di.xml");
+        AnnotationConfigApplicationContext ctx =
+                new AnnotationConfigApplicationContext(ConfigWithXMLImport.class);
 //        AnnotationConfigApplicationContext ctx =
 //                new AnnotationConfigApplicationContext("com.spring.core.di.config");
 
