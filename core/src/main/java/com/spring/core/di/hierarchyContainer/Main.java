@@ -10,6 +10,6 @@ public class Main {
         child.load("classpath:conf-child.xml");
         child.refresh();
         Child instance = child.getBean("child",Child.class);
-        
+
     }
 }
