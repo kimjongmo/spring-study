@@ -14,5 +14,6 @@
     <bean id="annotationConnPool" class="com.spring.core.lifecycle.AnnotationConnPool">
     </bean>
 
-    <bean id="customConnPool" class="com.spring.core.lifecycle.CustomConnPool" init-method="initPool" destroy-method="destroyPool"></bean>
+    <bean id="customConnPool" class="com.spring.core.lifecycle.CustomConnPool" init-method="initPool"
+          destroy-method="destroyPool"></bean>
 </beans>
