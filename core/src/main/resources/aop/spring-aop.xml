@@ -12,13 +12,38 @@
     <bean id="test" class="com.spring.core.aop.Test"></bean>
     <aop:config>
         <aop:aspect id="traceAspect" ref="profiler">
-            <aop:pointcut id="publicMethod" expression="execution(public void com.spring.core.aop.*.t*())"/>
+            <aop:pointcut id="publicMethod" expression="execution(public void com.spring.core.aop.Test.test())"/>
             <aop:around method="trace" pointcut-ref="publicMethod"/>
         </aop:aspect>
 
         <aop:aspect id="traceAspect2" ref="profiler2">
-            <aop:around pointcut="execution(public * com.spring.core.aop..*(..))" method="trace"></aop:around>
+            <aop:before pointcut="execution(public * com.spring.core.aop.Test.test(..))" method="before"></aop:before>
+        </aop:aspect>
+
+        <aop:aspect id="afterReturningAspect" ref="profiler">
+            <aop:after-returning method="afterReturning"
+                                 pointcut="execution(public Integer com.spring.core.aop.Test.retInt())"
+                                 returning="ret"/>
+        </aop:aspect>
+
+        <aop:aspect id="throwException" ref="profiler">
+            <aop:after-throwing method="afterThrowing" pointcut="within(com.spring.core.aop.Test)"
+                                throwing="throwable"/>
+            <aop:after-throwing method="afterThrowingNull" throwing="ex" pointcut="execution(public * *(..))"/>
+            <aop:after-throwing method="afterThrowingArith" throwing="ex" pointcut="execution(public * *(..))"/>
         </aop:aspect>
     </aop:config>
 
+    <bean id="bookCacheAdvice" class="com.spring.core.aop.BookCacheAdvice">
+        <property name="cache">
+            <map>
+                <entry key="1" value="1번 책"></entry>
+            </map>
+        </property>
+    </bean>
+    <aop:config>
+        <aop:aspect id="bookService" ref="bookCacheAdvice">
+            <aop:around method="cache" pointcut="execution(public String getTitle(..))"/>
+        </aop:aspect>
+    </aop:config>
 </beans>
