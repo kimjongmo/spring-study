@@ -8,11 +8,17 @@
        http://www.springframework.org/schema/aop/spring-aop.xsd">
 
     <bean id="profiler" class="com.spring.core.aop.Profiler"></bean>
+    <bean id="profiler2" class="com.spring.core.aop.Profiler"></bean>
     <bean id="test" class="com.spring.core.aop.Test"></bean>
     <aop:config>
         <aop:aspect id="traceAspect" ref="profiler">
             <aop:pointcut id="publicMethod" expression="execution(public void com.spring.core.aop.*.t*())"/>
             <aop:around method="trace" pointcut-ref="publicMethod"/>
         </aop:aspect>
+
+        <aop:aspect id="traceAspect2" ref="profiler2">
+            <aop:around pointcut="execution(public * com.spring.core.aop..*(..))" method="trace"></aop:around>
+        </aop:aspect>
     </aop:config>
+
 </beans>
