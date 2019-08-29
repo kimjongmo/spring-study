@@ -5,6 +5,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop
 http://www.springframework.org/schema/aop/spring-aop.xsd">
     <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <bean id="checker" class="com.spring.core.aop.Checker"/>
+    <bean id="firstAspect" class="com.spring.core.aop.aspect.FirstAspect"/>
+    <bean id="secondAspect" class="com.spring.core.aop.aspect.SecondAspect"/>
+
     <bean id="memberUpdateTraceAdvice" class="com.spring.core.aop.service.UpdateMemberInfoTraceAdvice"></bean>
 
     <bean id = "ms" class="com.spring.core.aop.service.MemberServiceImpl"/>

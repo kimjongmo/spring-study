@@ -1,6 +1,7 @@
 package com.spring.core.aop.annotation;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -44,7 +45,7 @@ public class ProfilingAspect {
 //
 //    }
 //
-//    @AfterReturning(pointcut = "profileTarget()", returning = "ret")
+//    @AfterReturning(pointcut = "*(ret)")
 //    public void afterReturning(Object ret) {
 //
 //    }
