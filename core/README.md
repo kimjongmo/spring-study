@@ -289,21 +289,58 @@ ctx.close(); // 컨테이너 종료
 
 - 스프링은 Aspect의 <mark>적용 대상이 되는 객체 대한 프록시를 만들어 제공</mark>
 - 대상 객체를 사용하는 코드는 결론적으로 프록시를 호출하게 된다
+  
   - <mark>프록시는 공통 기능을 실행한 뒤 대상 객체의 실제 메서드를 호출</mark>한다
-- 대상 객체가 인터페이스를 구현하고 있다면 자바에서는 리플렉션 API를 이용하여 대상 객체와 동일한 인터페이스를 구현한 프록시 객체가 생성된다.
+- 대상 객체가 인터페이스를 구현하고 있다면 자바에서는 리플렉션 API를 이용하여 대상 객체와 동일한 인터페이스를 구현한 프록시 객체가 생성된다.<mark>(JDK 동적 프록시)</mark>
+  
   - 인터페이스를 기반으로 프록시 객체를 생성하기 때문에 그 외에 메서드에 대해서는 AOP가 적용이 안된다
-- 대상 객체가 인터페이스를 구현하고 있지 않다면 스프링은 cglib를 이용하여 클래스에 대한 프록시를 생성
+  
+    ```java
+    public class MemberSerivceImpl implements MemberService {}
+    
+    ....
+        
+    MemberService memberService = ctx.getBean(MemberServiceImpl.class);
+    
+    System.out.println(memberService instanceof MemberService);//true
+    System.out.println(memberService instanceof MemberServiceImpl);//false
+    System.out.println(memberService.getClass().getName());//~$Proxy
+    ```
+  
+    
+- 대상 객체가 인터페이스를 구현하고 있지 않다면 스프링은 <mark>cglib</mark>를 이용하여 클래스에 대한 프록시를 생성
+  
   - 클래스가 final인 경우 프록시를 생성할 수 없고, final 키워드가 붙은 메서드에 대해 AOP를 적용못한다.
 
 > CGLIB :  코드 생성 라이브러리로, JAVA 클래스를 확장하고 런타임에 인터페이스를 구현하는 데 사용
 
-​	
-
-### XML 스키마 기반 AOP 설정
-
-문법 ...
 
 
+### AOP 프록시 객체 생성 방식 설정
+
+위에서 대상 객체가 인터페이스를 구현하고 있다면 해당 인터페이스를 구현한 새로운 프록시 객체를 만들게 된다고 하였다.
+
+만약 인터페이스를 구현하고 있지만 인터페이스가 아닌 <mark>클래스를 기준으로 프록시를 생성</mark>하고 싶다면 아래와 같은 설정이 필요하다. 이렇게 되면  CGLIB를 이용하여 프록시를 생성하게 된다.
+
+```java
+@EnableAspectJAutoProxy(proxyTargetClass = true)
+```
+
+```xml
+<aop:config proxy-target-class="true">
+</aop:config>
+
+or 
+
+<aop:aspectj-autoproxy proxy-target-class="true"/>
+```
 
 
+
+### Advice 적용 순서
+
+하나의 JoinPoint에 한 개 이상의 Advice가 적용될 경우 순서를 명시적으로 지정한다.
+
+- @Order
+- interface Ordered
 

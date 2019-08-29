@@ -6,8 +6,9 @@ public class Test {
 
     @PostConstruct
     public void setUp(){
-        System.out.println("Test 생성");
+        System.out.println("setup Test");
     }
+
     public void method() {
         System.out.println("테스트합니다.");
     }

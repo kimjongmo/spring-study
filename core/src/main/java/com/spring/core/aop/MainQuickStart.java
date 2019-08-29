@@ -1,26 +1,17 @@
 package com.spring.core.aop;
 
-import com.spring.core.aop.conf.AspectConfig;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 public class MainQuickStart {
     public static void main(String[] args) {
-//        GenericXmlApplicationContext ctx =
-//                new GenericXmlApplicationContext("classpath:aop/spring-anno-aop.xml");
+        GenericXmlApplicationContext ctx =
+                new GenericXmlApplicationContext("classpath:aop/type-aop.xml");
 
-        AnnotationConfigApplicationContext ctx =
-                new AnnotationConfigApplicationContext(AspectConfig.class);
-        Test test = ctx.getBean(Test.class);
-        test.method();
-//
-//        try {
-////            test.divide(0);
-////            test.getTitle(1);
-//        } catch (ArithmeticException e) {
-//
-//        } finally {
-//            ctx.close();
-//        }
+//        MemberService ms = ctx.getBean("memberService",MemberService.class);
+//        System.out.println(ms instanceof MemberService);
+//        System.out.println(ms instanceof MemberServiceImpl);
+//        System.out.println(ms.getClass().getName());
+
         ctx.close();
     }
 }

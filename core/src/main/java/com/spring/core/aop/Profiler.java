@@ -2,8 +2,14 @@ package com.spring.core.aop;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.springframework.beans.factory.InitializingBean;
 
-public class Profiler {
+public class Profiler implements InitializingBean {
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("생성합니다.");
+    }
 
     public Object trace(ProceedingJoinPoint joinPoint) throws Throwable {
         String signatureString = joinPoint.getSignature().toShortString();
