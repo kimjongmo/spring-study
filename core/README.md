@@ -176,8 +176,6 @@ xml설정
 
 각각의 장점이 서로 다르기 때문에 이 둘을 적당히 혼합하여 사용해야한다.
 
-
-
 ### 스프링 컨테이너의 생성과 종료 
 
 1. 컨테이너 생성
@@ -347,10 +345,10 @@ or
 
 ## Environment
 
-- 개발에는 로컬 개발 환경, 테스트 환경, 서비스 환경, 다국어 등에 따라 다른 값을 사용해야 할 수 있다. 스프링은 Environment를 용하여 환경에 따른 값을 설정할 수 있다.
+- 개발에는 로컬 개발 환경, 테스트 환경, 서비스 환경, 다국어 등에 따라 다른 값을 사용해야 할 수 있다. <mark>스프링은 Environment를 이용하여 환경에 따른 값을 설정할 수 있다</mark>.
 - Environment는 두 가지 기능을 제공한다
-  - PropertySource:프로퍼티 관리(시스템 환경 변수, JVM 시스템 프로퍼티, 프로퍼티 파일)
-  - 특정 프로필 활성화 가능(개발 환경, 통합 테스트 환경, 실 서비스 환경)
+  - PropertySource:<mark>프로퍼티 관리</mark>(시스템 환경 변수, JVM 시스템 프로퍼티, 프로퍼티 파일)
+  - 특정 <mark>프로필 활성화</mark> 가능(개발 환경, 통합 테스트 환경, 실 서비스 환경)
 
 
 
@@ -369,11 +367,11 @@ or
 
 ### MutablePropertySources
 
-- MutablePropertySources 에는 여러 개의 PropertySource가 등록될 수 있다. 이렇게 프로퍼티 설정이 여러 개일 경우 등록된 순서에 따라 차례대로 확인을 하게 된다.
+- MutablePropertySources 에는 여러 개의 PropertySource가 등록될 수 있다. 이렇게 <mark>프로퍼티 설정이 여러 개일 경우 등록된 순서에 따라 차례대로 확인</mark>을 하게 된다.
 
 -  [시스템 프로퍼티 - 환경 변수 - 자바 Properties] 순서로 프로퍼티를 등록하게 되면 Environment에 프로퍼티 값을 요청하게 되었을 때 이 순서 그대로 검색을 하게 된다.
 
-- 스프링은 기본적으로 시스템 프로퍼티와 환경 변수를 사용하는 두 개의 PropertySource를 가진다.
+- 스프링은 <mark>기본적으로 시스템 프로퍼티와 환경 변수</mark>를 사용하는 두 개의 PropertySource를 가진다.
 
 
 
@@ -383,4 +381,148 @@ or
 - MutablePropertySources에 사용자 PropertySource 추가해서 사용하기, @PropertySource,@PropertySources -> @Autowired로 Environment 객체 받아서 사용
 - XML 설정( <context:property-placeholder>)
 - PropertySourcesPlaceholderConfigurer 객체와 @Value 어노테이션 이용
+
+
+
+### 프로필
+
+- 데이터베이스 IP, 디렉토리 경로, 외부 서비스 URL 등 어떤 환경인지에 따라 달라진다.
+- 프로터티 파일에서 값을 가져와 알맞게 변경해주면 되지만 <mark>환경이 바뀔 때마다 프로퍼티 파일을 수정하는 방법은 좋아보이지 않는다.</mark>
+- 각 <mark>환경에 맞는 설정 정보를 따로 만들고, 환경에 따라 알맞은 설정 정보를 사용하는 것</mark>
+- xml 에 profile 관련하여 설정을 하고,  Environment에서 profile active시키는 방법
+- @Profile을 이용해서도 가능
+
+
+
+### MessageSource
+
+- 개발해야 할 어플리케이션이 <mark>다국어를 지원</mark>해야 할 경우
+
+
+
+## 확장포인트
+
+스프링의 기능을 확장하는 방법
+
+- <mark>BeanFactoryPostProcessor</mark>를 이용한 빈 설정 정보 변경(빈 객체 생성 전 적용)
+- <mark>BeanPostProcessor</mark>를 이용한 빈 객체 변경(빈 객체 생성 이후 적용)
+
+
+
+### BeanFactoryPostProcessor
+
+- 스프링은 빈 객체를 실제로 생성하기 전 설정 메타 정보를 변경하기 위한 용도로 이 인터페이스를 사용한다
+
+- PropertySourcesPlaceholderConfigurer도 이 인터페이스를 구현함으로서 값으로 전달된 "${db.driver}"를 실제 값으로 변경해주는 기능을 제공한다.
+
+  ```xml
+  <bean id="connPool" class="com.spring.core.env.ConnectionPool">
+  	<!-- PropertySourcesPlaceholderConfigurer가 프로퍼티를 실제 값으로 변경시킨다 -->
+      <property name="driver" value="${db.driver}"/>
+  </bean>
+  ```
+
+- BeanFactoryPostProcessor에는 정의된 postProcessBeanFactory메서드의 파라미터인 ConfigurableListableBeanFactory가 정의되어 있다..
+
+- ConfigurableListableBeanFactory는 설정 정보를 구할 수 있는 두 개의 메서드를 제공한다
+
+  - String[] getBeanDefinitionNames() : 모든 빈의 이름을 구한다.
+  - BeanDefinition getBeanDefinition(String beanName) : 빈의 설정 정보를 구한다.
+    - BeanDefinition 인터페이스는 빈 설정 정보를 구하거나 수정할 때 필요한 메서드를 정의
+
+- @Configuration을 이용해서 생성하는 빈 객체는 빈 설정 정보를 만들지 못하기 때문에 ThresholdRequiredBeanFactoryPostProcessor를 만든다고 해도 설정 정보를 변경할 수 없다.
+
+
+
+### BeanPostProcessor
+
+- BeanPostProcessor는 생성된 빈 객체를 변경하는 방법을 사용한다.
+
+- postProcessBeforeInitilization()메소드와 postProcessAfterInitialization()메소드가 정의되어 있다.
+
+- 스프링은 빈 객체를 초기화하는 과정에서 두 메서드를 호출
+
+  ![빈 라이프사이클](./img/BeanLifeCycle.PNG)
+
+- 두 개 이상의 BeanPostProcessor가 존재할 경우 Ordered 인터페이스를 이용해서 순서를 지정
+
+
+
+### PropertyEditor
+
+- 값을 설정할 때에는 항상 문자열형태로 입력을 하지만 스프링은 내부적으로 PropertyEditor를 이용해서 문자열을 알맞은 타입으로 변환한다.
+
+- 스프링 3 이후에서는 ConversionService를 이용해서 타입 변환을 처리한다.
+
+- 스프링이 제공하는 주요 PropertyEditor
+
+  | PropertyEditor          | 설명                                                 | 기본 사용 |
+  | ----------------------- | ---------------------------------------------------- | --------- |
+  | ByteArrayPropertyEditor | String.getByte()를 이용해서 문자열을 byte배열로 변환 | 기본      |
+  | CharArrayPropertyEditor | String.toCharArray()                                 |           |
+  | CharsetEditor           | 문자열을 Charset 으로 변환                           | 기본      |
+  | ClassEditor             | 문자열을 Class 타입으로 변환                         | 기본      |
+  | CurrencyEditor          | 문자열을 Currency 타입으로 변환                      |           |
+  | CustomBooleanEditor     | 문자열을 Boolean 타입으로 변환                       | 기본      |
+  | CustomDateEditor        | DateFormat을 이용해서 Date로 변환                    |           |
+  | CustomNumberEditor      | Long,Double,BigDecimal 등 숫자 타입                  | 기본      |
+  | FileEditor              | File로 변환                                          | 기본      |
+  | LocaleEditor            | Locale로 변환                                        | 기본      |
+  | PatternEditor           | 정규 표현식 문자열을 Pattern으로 변환                | 기본      |
+  | PropertiesEditor        | Properties로 변환                                    | 기본      |
+  | URLEditor               | URL로 변환                                           | 기본      |
+
+- 기본으로 설정되어 있지 않은 Editor는 PropertyEditor를 추가로 등록해주어야 한다.
+
+- 커스텀 PropertyEditor
+  - PropertyEditorSuppot 상속받아 클래스 생성. 변환 대상 타입과 동일한 패키지에 '타입Editor' 이름으로 놓는다. 
+  - 패키지가 다르거나 , 이름이 '타입Editor'를 따르고 있지 않다면 CustomEditorConfigurer를 이용해서 설정한다.
+  - Editor에 매개 변수를 지정하고 싶을 때는 PropertyEditrRegistrar를 이용
+
+
+
+### ConversionService
+
+- 스프링3에서부터 지원
+
+- PropertyEditor는 문자열과 타입 간의 변환을 처리해주는 방식
+
+- ConversionService는 타입과 타입 간의 변환을 처리한다(더 범용적이다)
+
+- ConversionService를 등록하게 되면 스프링은 이를 PropertyEditor대신 사용하게 된다.
+
+  
+
+  
+
+#### ConversionServiceFactoryBean을 이용하여 ConversionService등록
+
+  - DefaultConversionService는 스프링이 제공하는 ConversionService의 구현이며, 이를 사용하기 위해서는 ConversionServiceFactoryBean을 등록하는 것이다.
+  - 등록을 할 때 id를 'conversionService'로 등록하여야 한다.
+  - DefaultConversionService
+      - 직접 타입 변환을 하지 않고 등록된 GenericConverter에 위임
+          - 소스 객체의 타입을 대상 타입으로 변환해주는 Generic Converter를 찾는다.
+          - 존재할 경우 Generic Converter를 이용하여 변환
+          - 존재하지 않을 경우 Exception 발생
+
+
+
+#### GenericConverter를 이용한 커스텀 변환 
+
+- GenericConveter 인터페이스를 구현한 Converter를 생성
+- ConversionServiceFactoryBean의 converters 프로퍼티에 추가
+
+
+
+#### Converter를 이용한 구현
+
+- 다양한 타입들이 존재하고 이것들을 모두 GenericConverter를 이용해서 구현하는 것은 코드가 많아지고 복잡해지게 만든다.
+- 타입 변환이 단순한 경우에는 Converter 인터페이스를 사용하여 쉽게 구현가능하다.
+
+
+
+#### FormattingConversionServiceFactoryBean
+
+- DefaultGenericConverter이 Formatter를 이용해서 타입 변환을 수행하는 구현체
+- Converter/GenericConverter 외에 날짜/시간 변환을 위한 Formatter와 Converter를 추가로 등록
 

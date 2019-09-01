@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <context:annotation-config/>
+
+    <bean class="com.spring.core.expansion.CacheStockReaderBeanPostProcessor">
+        <property name="order" value="2"/>
+    </bean>
+
+    <bean class="com.spring.core.expansion.TraceBeanPostProcessor">
+        <property name="order" value="1"/>
+    </bean>
+
+    <bean id="stockReader" class="com.spring.core.expansion.StockReaderImpl"></bean>
+
+    <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+        <property name="customEditors">
+            <map>
+                <entry key="com.spring.core.expansion.Money"
+                       value="com.spring.core.expansion.propertyEditor.MoneyEditor"></entry>
+            </map>
+        </property>
+        <property name="propertyEditorRegistrars">
+            <list>
+                <ref bean="customPropertyEditorRegistrar"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="customPropertyEditorRegistrar"
+          class="com.spring.core.expansion.propertyEditor.CustomPropertyEditorRegistrar">
+        <property name="datePattern" value="yyyy-MM-dd HH:mm:ss"/>
+    </bean>
+
+
+    <bean class="com.spring.core.expansion.InvestmentSimulator">
+        <property name="money" value="10000WON"/>
+    </bean>
+
+    <bean id="customDate" class="com.spring.core.expansion.CustomDate">
+        <property name="date" value="2019-09-02 01:46:00"/>
+    </bean>
+</beans>

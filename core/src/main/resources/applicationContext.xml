@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean class="com.spring.core.expansion.ThresholdRequiredBeanFactoryPostProcessor">
+        <property name="defaultThreshold" value="10"/>
+    </bean>
+
+    <bean id="collector1" class="com.spring.core.expansion.DataCollector">
+        <property name="threshold" value="5"/>
+    </bean>
+
+    <bean id="collector2" class="com.spring.core.expansion.DataCollector">
+    </bean>
+
+</beans>
