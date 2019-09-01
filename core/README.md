@@ -307,7 +307,6 @@ ctx.close(); // 컨테이너 종료
     System.out.println(memberService.getClass().getName());//~$Proxy
     ```
   
-    
 - 대상 객체가 인터페이스를 구현하고 있지 않다면 스프링은 <mark>cglib</mark>를 이용하여 클래스에 대한 프록시를 생성
   
   - 클래스가 final인 경우 프록시를 생성할 수 없고, final 키워드가 붙은 메서드에 대해 AOP를 적용못한다.
@@ -343,4 +342,45 @@ or
 
 - @Order
 - interface Ordered
+
+
+
+## Environment
+
+- 개발에는 로컬 개발 환경, 테스트 환경, 서비스 환경, 다국어 등에 따라 다른 값을 사용해야 할 수 있다. 스프링은 Environment를 용하여 환경에 따른 값을 설정할 수 있다.
+- Environment는 두 가지 기능을 제공한다
+  - PropertySource:프로퍼티 관리(시스템 환경 변수, JVM 시스템 프로퍼티, 프로퍼티 파일)
+  - 특정 프로필 활성화 가능(개발 환경, 통합 테스트 환경, 실 서비스 환경)
+
+
+
+### ConfigurableEnvironment
+
+- ConfigurableApplicationContext를 통해 Environment의 하위 구조인 ConfigurableEnvironment를 가져올 수 있다. 
+
+  ```java
+  ConfigurableApplicationContext ctx = new GenericXmlApplicationContext();
+  ConfigurableEnvironment env = ctx.getEnvironment();
+  ```
+
+- 프로필을 선택하는 기능과 PropertySource를 추가하는데 필요한 기능들이 있다.
+
+
+
+### MutablePropertySources
+
+- MutablePropertySources 에는 여러 개의 PropertySource가 등록될 수 있다. 이렇게 프로퍼티 설정이 여러 개일 경우 등록된 순서에 따라 차례대로 확인을 하게 된다.
+
+-  [시스템 프로퍼티 - 환경 변수 - 자바 Properties] 순서로 프로퍼티를 등록하게 되면 Environment에 프로퍼티 값을 요청하게 되었을 때 이 순서 그대로 검색을 하게 된다.
+
+- 스프링은 기본적으로 시스템 프로퍼티와 환경 변수를 사용하는 두 개의 PropertySource를 가진다.
+
+
+
+### 프로퍼티 얻기
+
+- ConfigurableEnvironment(시스템, 환경변수)
+- MutablePropertySources에 사용자 PropertySource 추가해서 사용하기, @PropertySource,@PropertySources -> @Autowired로 Environment 객체 받아서 사용
+- XML 설정( <context:property-placeholder>)
+- PropertySourcesPlaceholderConfigurer 객체와 @Value 어노테이션 이용
 
