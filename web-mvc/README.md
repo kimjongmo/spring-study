@@ -254,3 +254,102 @@ public String regist(MemberRegistRequest memberRegistRequest){
 
 - @ModelAttribute 어노테이션을 메서드에 사용하면 이 메서드의 리턴 결과를 속성으로 추가한다.
 
+
+
+#### @CookieValue , @RequestHeader
+
+- @CookieValue : 쿠키값 구하기
+  - value : 이름에 해당하는 쿠키를 가져온다.
+  - required  : 필수 여부
+  - 어노테이션을 붙인 타입에 바로 매핑됨.
+    - @CookieValue Integer auth : 쿠키값이 Integer로 매핑
+- @RequestHeader  : 요청 헤더값 구하기
+  - value : 이름에 해당하는 헤더값을 가져온다.
+  - required : 필수 여부
+
+
+
+#### 리다이렉트
+
+- 현재 요청에 대한 페이지가 아니라, 새로운 요청을 스스로 요청하는 것
+
+  ```java
+  @RequestMapping("/hello.do")
+  public String hello(Model model) {
+      model.addAttribute("greeting", "안녕하세요");
+      return "redirect:/bye.do"; //스스로 bye.do라는 요청을 보낸다.
+  }
+  
+  @RequestMapping("/bye.do")
+  public String bye() {
+      return "bye"; //스스로 bye.do라는 요청을 보낸다.
+  }
+  ```
+
+- redirect: 뒤에 "/" 슬래시를 붙이면 어플리케이션 절대 경로 기준
+
+- redirect: 뒤에 슬래시가 없이 시작하면 현재 경로의 상대 경로로 디라이렉트된다.
+
+  ```java
+  @RequestMapping("/welcome/hello")
+  ..
+      return "redirect:bye"; //  스스로 /welcome/bye를 요청
+  
+  @RequestMapping("/welcome/hello")
+  ..
+      return "redirect:http://localhost:8080/bye"; 
+  //URL을 완전하게 입력하면 http://localhost:8080/bye를 요청
+  ```
+
+- redirect에 경로 변수를 사용할 수 있다.
+
+  ```java
+  @RequestMapping(value="/{postId}")
+  ..
+  return "redirect:/post/{postId}";
+  ```
+
+  
+
+### 커맨드 객체 값 검증과 에러 메시지
+
+- 사용자의 입력값을 검사하는 방법 2가지
+
+  - 브라우저의 자바스크립트
+  - 서버에서 직접 검사
+
+- Validator
+
+  ```java
+  public interface Validator{
+      boolean supports(Class<?> clazz);
+      void validate(Object target, Errors errors);
+  }
+  ```
+
+  - 구현1
+
+    - Validator interface를 구현
+
+      - ValidationUtils를 이용하면 좀 더 쉽게 검사할 수 있음.
+
+    - 컨트롤러에 파라미터 BindingResult 또는 Errors 추가(<mark>BindingResult, Errors는 항상 파라미터 가장 뒤에 위치해야한다.</mark>)
+
+      ```
+      new CustomValidator().validate(memberRegReq, bindingResult); 
+      ```
+
+    - Errors
+
+      ```
+      객체의 속성에 관하여 문제가 있을시 rejectValue(속성,메시지)를 전달하게 된다. 속성 자체에는 문제가 없지만 아이디랑 비밀번호가 틀린것과 같은 도메인적인 문제는 reject(메시지)로 처리한다.
+      ```
+
+- 에러 코드
+
+  - 스프링 MVC는 에러 코드로부터 메시지를 가져오는 방법을 제공
+  - 검증 과정에서 추가된 에러 메시지를 사용하려면
+    - MessageSource를 설정
+    - MessageSource에서 메시지를 가져올 때 사용할 프로퍼티 파일 작성
+    - 뷰에서 스프링이 제공하는 태그를 이용해서 에러 메시지 출력
+  - 스프링 MVC는 에러 코드로부터 생성된 메시지 코드를 사용해서 에러 메시지 출력
