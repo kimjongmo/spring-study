@@ -408,6 +408,71 @@ protected List<String> selectData() throws Exception{
 
 
 
-## 값 포매팅 처리
+## \<spring:htmlEscape> 
 
-스프링의 폼 관련 커스텀 태그는 스프링 MVC를 위해 등록한 PropertyEditor나 ConvertionService를 이용해서 값을 변환한다.
+- defaultHtmlEscape 컨테스트 파라미터를 사용하면 웹 어플리케이션 전반에 걸쳐 HTML의 특수 문자를 엔티티 레퍼런스로 치환해준다.
+
+- Page 별로 특수 문자 치환 여부를 설정하고 싶다면 아래의 코드를 페이지의 상단에 설정 해주면된다.
+
+  ```html
+  <spring:htmlEscape defaultHtmlEscape="true"/>
+  ```
+
+
+
+## \<form:form> RESTful
+
+- 스프링 MVC는 HTTP method의 `GET`,`POST`,`PUT`,`DELETE` 방식을 지원하고 있다.
+
+- 웹 브라우저는 GET방식과 POST 방식만을 지원하고 있다.
+
+- 따라서 웹 브라우저에서 PUT, DELETE 방식을 이용할 수 있도록 몇 가지 작업이 필요하다
+
+  - web.xml 파일에 HiddenHttpMethodFilter 적용
+
+    ```xml
+    <filter>
+            <filter-name>httpMethodFilter</filter-name>
+            <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+        </filter>
+        <filter-mapping>
+            <filter-name>httpMethodFilter</filter-name>
+            <servlet-name>dispatcher</servlet-name>
+        </filter-mapping>
+    ```
+
+  - \<form:form> 의 method 속성 이용
+
+    ```html
+    <form:form method="delete">
+    ...
+    </form:form>
+    
+    <!-- 생성 -->
+    <form>
+    	<input type="hidden" name="_method" value="delete"/>    
+        ...
+    </form>
+    ```
+
+    다음과 같이 메소드가 `DELETE`, `PUT` 일 경우 hidden 타입의 input 태그가 하나 생긴다. HiddenHttpMethodFilter는 요청 파라미터의 _method 파라미터가 존재할 경우 이 값을 요청 방식으로 사용하도록 만들어준다.
+
+    ```java
+    public class HiddenHttpMethodFilter extends OncePerRequestFilter {
+        private String methodParam = "_method";
+    
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+            String paramValue = request.getParameter(this.methodParam);
+            if ("POST".equals(request.getMethod()) && StringUtils.hasLength(paramValue)) {
+                ....
+            } else {
+                filterChain.doFilter(request, response);
+            }
+    
+        }
+    }
+    ```
+
+    
+
+    

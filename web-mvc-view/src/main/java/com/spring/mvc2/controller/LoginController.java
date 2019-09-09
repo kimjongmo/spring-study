@@ -24,7 +24,7 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/login/registForm", method = RequestMethod.GET)
-    public String getLoginForm(BindingResult bindingResult) {
+    public String getLoginForm() {
         return LOGIN_FORM;
     }
 
@@ -32,9 +32,9 @@ public class LoginController {
     @RequestMapping(value = "/login/registMember", method = RequestMethod.POST)
     public String registMember(@Valid @ModelAttribute("registCommand") MemberRegistRequest registCommand,
                                BindingResult bindingResult) {
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             System.out.println("Errors");
-            return "redirect:/login/registForm";
+            return LOGIN_FORM;
         }
         return "redirect:/login/registForm";
     }

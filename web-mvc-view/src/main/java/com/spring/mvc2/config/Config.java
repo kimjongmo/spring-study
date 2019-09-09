@@ -1,6 +1,7 @@
 package com.spring.mvc2.config;
 
 import com.spring.mvc2.interceptor.CommonInterceptor;
+import com.spring.mvc2.view.DownloadView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.web.servlet.config.annotation.DefaultServletHandlerCo
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 
@@ -30,14 +32,27 @@ public class Config extends WebMvcConfigurerAdapter {
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
-
     @Bean(name = "viewResolver")
     public InternalResourceViewResolver viewResolver() {
         InternalResourceViewResolver viewResolver
                 = new InternalResourceViewResolver();
         viewResolver.setPrefix("/WEB-INF/view/");
         viewResolver.setSuffix(".jsp");
+        viewResolver.setOrder(2);
         return viewResolver;
+    }
+
+    @Bean
+    public BeanNameViewResolver beanNameViewResolver() {
+        BeanNameViewResolver beanNameViewResolver
+                = new BeanNameViewResolver();
+        beanNameViewResolver.setOrder(1);
+        return beanNameViewResolver;
+    }
+
+    @Bean(name = "download")
+    public DownloadView downloadView() {
+        return new DownloadView();
     }
 
     @Override
