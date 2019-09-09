@@ -406,3 +406,8 @@ protected List<String> selectData() throws Exception{
 <textarea id="etc" name="etc" rows="3" cols="3"></textarea>
 ```
 
+
+
+## 값 포매팅 처리
+
+스프링의 폼 관련 커스텀 태그는 스프링 MVC를 위해 등록한 PropertyEditor나 ConvertionService를 이용해서 값을 변환한다.
