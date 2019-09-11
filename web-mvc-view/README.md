@@ -475,4 +475,112 @@ protected List<String> selectData() throws Exception{
 
     
 
-    
+
+
+# HTML 이외의 뷰 구현
+
+- 웹 어플리케이션은 파일 다운로드 기능을 제공하기도 한다
+- 동적으로 엑셀이나 PDF 파일을 생성해야 하는 경우도 있다.
+
+
+
+## 파일 다운로드 구현을 위한 커스텀 View
+
+- 컨트롤러 클래스는 다운로드 받을 파일과 관련된 정보를 생성해서 뷰에 전달해야한다.
+
+  ```java
+  @Controller
+  public class DownloadController implements ApplicationContextAware {
+  
+      private WebApplicationContext context = null;
+  
+  
+      @RequestMapping("/file/{fileId}")
+      public ModelAndView download(@PathVariable String fileId, HttpServletResponse response) throws IOException {
+          File downloadFile = getFile(fileId);
+          if (downloadFile == null) {
+              response.sendError(HttpServletResponse.SC_NOT_FOUND);
+              return null;
+          }
+          return new ModelAndView("download", "downloadFile", downloadFile);
+      }
+  
+  
+      private File getFile(String fileId) {
+          String baseDir = context.getServletContext().getRealPath("/WEB-INF/files");
+          if (fileId.equals("1")) {
+              return new File(baseDir, "런닝맨.zip");
+          }
+          return null;
+      }
+  
+      @Override
+      public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+          this.context = (WebApplicationContext) applicationContext;
+      }
+  }
+  ```
+
+- JSP는 파일 다운로드와 같은 기능을 구현하기 보다는 HTML과 같은 결과를 보여주기에 적합한 뷰 구현 기술
+
+- 보통 HTML 응답이 아닌 경우 그에 알맞은 전용 뷰 클래스를 구현
+
+  - BeanNameViewResolver 이용
+
+
+
+
+## 엑셀 다운로드 구현
+
+- 스프링은 엑셀 형식으로 뷰 데이터를 생성할 수 있도록 제공하고 있다.
+
+  - AbstractExcelView
+  - AbstractJExcelView
+
+- POI api를 이용함으로 아래의 의존성을 추가한다.
+
+  ```xml
+  <dependency>
+  	<groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>...</version>
+  </dependency>
+  ```
+
+- AbstractExcelView 추상 클래스를 상속받아 작성
+
+  ```java
+  protected abstract void buildExcelDocument (...);
+  ```
+
+  해당 메소드를 구현할 때에 파라미터인 HSSFWorkbook 타입을 이용하여 작성한다.
+
+
+
+## AbstractPdfView
+
+- iText api를 이용한 PDF 파일 생성 기능을 제공 
+
+
+
+# Locale 처리
+
+- 스프링이 제공하는 \<spring:message> 커스텀 태그는 웹 요청과 관련된 언어 정보를 이용해서 알맞은 언어의 메시지를 출력한다.
+
+- 스프링 MVC는 Localeresolver를 이용해서 웹 요청과 관련된 Locale을 추출하고, Locale 객체를 이용해서 알맞은 언어의 메시지를 선택하게 된다.
+
+
+
+## LocaleResolver 인터페이스
+
+```java
+public interface LocaleResolver {
+    Locale resolveLocale(HttpServletRequest var1);
+
+    void setLocale(HttpServletRequest var1, HttpServletResponse var2, Locale var3);
+}
+```
+
+- resolveLocale : 요청과 관련된 Locale을 리턴. dispatcherServlet은 등록되어 있는 LocaleResolver의 resolve() 메서드를 호출하여 사용할 Locale을 구한다.
+- setLocale : Locale을 변경할 때 사용. 쿠키나 HttpSession에 Locale 정보를 저장할 때에 이 메서드가 사용
+- 

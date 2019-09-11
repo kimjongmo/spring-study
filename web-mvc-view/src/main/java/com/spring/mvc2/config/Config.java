@@ -2,6 +2,8 @@ package com.spring.mvc2.config;
 
 import com.spring.mvc2.interceptor.CommonInterceptor;
 import com.spring.mvc2.view.DownloadView;
+import com.spring.mvc2.view.PageRankView;
+import com.spring.mvc2.view.PageReportView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +34,7 @@ public class Config extends WebMvcConfigurerAdapter {
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
+
     @Bean(name = "viewResolver")
     public InternalResourceViewResolver viewResolver() {
         InternalResourceViewResolver viewResolver
@@ -59,5 +62,15 @@ public class Config extends WebMvcConfigurerAdapter {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new CommonInterceptor())
                 .addPathPatterns("/login/**");
+    }
+
+    @Bean(name = "pageRank")
+    public PageRankView pageRankView() {
+        return new PageRankView();
+    }
+
+    @Bean(name = "pageReport")
+    public PageReportView pageReportView() {
+        return new PageReportView();
     }
 }
