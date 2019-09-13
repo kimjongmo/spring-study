@@ -12,6 +12,7 @@ import org.springframework.web.servlet.config.annotation.DefaultServletHandlerCo
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
@@ -62,6 +63,11 @@ public class Config extends WebMvcConfigurerAdapter {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new CommonInterceptor())
                 .addPathPatterns("/login/**");
+
+        LocaleChangeInterceptor localeChangeInterceptor
+                = new LocaleChangeInterceptor();
+        localeChangeInterceptor.setParamName("ko");
+        registry.addInterceptor(localeChangeInterceptor);
     }
 
     @Bean(name = "pageRank")
@@ -73,4 +79,6 @@ public class Config extends WebMvcConfigurerAdapter {
     public PageReportView pageReportView() {
         return new PageReportView();
     }
+
+
 }

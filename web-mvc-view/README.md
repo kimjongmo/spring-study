@@ -583,4 +583,63 @@ public interface LocaleResolver {
 
 - resolveLocale : 요청과 관련된 Locale을 리턴. dispatcherServlet은 등록되어 있는 LocaleResolver의 resolve() 메서드를 호출하여 사용할 Locale을 구한다.
 - setLocale : Locale을 변경할 때 사용. 쿠키나 HttpSession에 Locale 정보를 저장할 때에 이 메서드가 사용
-- 
+
+## LocaleResolver의 종류
+
+| 클래스                     | 설명                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| AcceptHeaderLocaleResolver | 웹 브라우저가 전송한 Accept-Language 헤더로부터 Locale을 선택 |
+| CookieLocaleResolver       | 쿠키를 이용해서 Locale 정보를 구한다.                        |
+| SessionLocaleResolver      | 세션으로부터 Locale 정보를 구한다.                           |
+| FixedLocaleResolver        | 요청과 상관없이 Locale로 설정                                |
+
+## LocaleResolver 등록
+
+- DispatcherServlet은 이름이 `localeResolver`인 빈을 LocaleResolver로 사용한다. 
+
+  ```xml
+  <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver"/>
+  ```
+
+
+
+## LocaleResolver 이용하기
+
+- localeResolver 빈을 주입받아서 사용할 수 있다.
+
+  ```java
+  <bean class="com.spring.mvc2.controller.LocaleController">
+  	<property name="localeResolver" ref="localeResolver"/>
+  </bean>
+  ```
+
+  ```java
+  public class LocaleController {
+      
+      private LocaleResolver localeResolver;
+      
+      ...
+      localeResolver.setLocale(request,response,locale);
+      ...
+      
+  }
+  ```
+
+- RequestContextUtils
+
+  ```java
+  LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+  ```
+
+- 스프링이 제공하는 LocaleChangeInterceptor를 사용하여 웹 요청 파라미터를 변경
+
+  ```xml
+  <mvc:interceptors>
+  	<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+      	<property name="paramName" value="ko"/>
+      </bean>
+  </mvc:interceptors>
+  ```
+
+  
+
