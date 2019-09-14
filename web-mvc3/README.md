@@ -188,11 +188,103 @@ public interface MultipartFile {
     }
 ```
 
-
-
 ### MultipartHttpServletRequest
 
-
+생략
 
 ### 커맨드 객체를 통한 접근
+
+생략
+
+### 서블릿 3의 Part
+
+생략
+
+
+
+# 웹소켓 서버
+
+- 웹 브라우저와 웹 서버 간 양방향 통신을 지원하기 위한 표준
+- 실시간 알림, 채팅, 웹 기반의 실시간 협업 도구
+- 스프링은 컨트롤러를 구혀하는 것과 비슷한 방식으로 웹소켓 서버를 구현할 수 있게 지원한다.
+
+## 의존 설정
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-websocket</artifactId>
+    <version>4.0.9.RELEASE</version>
+</dependency>
+```
+
+
+
+## WebSocketHandler를 이용한 웹소켓 서버 구현
+
+- 구현
+  - WebSocketHandler 인터페이스 구현
+  - \<websocket:handlers> 또는 @EnableWebSocket 어노테이션을 이용해서 WebSocketHandler 구현 객체를 엔드포인트로 등록
+- 웹소켓 모듈은 웹소켓 클라이언트가 연결되거나 ,데이터를 보내거나, 연결을 끊는 경우 WebSocketHandler에 관련 데이터를 전달한다.
+
+
+
+### WebSocketHandler 구현
+
+```java
+public class EchoHandler extends TextWebSocketHandler {
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        System.out.printf("%s 연결 됨\n",session.getId());
+    }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        System.out.printf("%s 로부터 [%s] 받음 \n",session.getId(),message.getPayload());
+        session.sendMessage(new TextMessage("echo: "+message.getPayload()));
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        System.out.printf("%s 연결 끊김\n",session.getId());
+    }
+}
+```
+
+- WebSocketHandler 인터페이스를 직접 상속받기 보다는 기본 구현을 일부 제공하는 TextWebSocketHandler나 AbstractWebSocketHandler를 이용
+
+### 엔드포인트 설정
+
+```java
+@Configuration
+@EnableWebSocket
+public class WsConfig implements WebSocketConfigurer {
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
+        webSocketHandlerRegistry.addHandler(textWebSocketHandler(),"/echo");
+    }
+
+    @Bean
+    public WebSocketHandler textWebSocketHandler() {
+        return new TextWebSocketHandler();
+    }
+}
+```
+
+- 브라우저에서 엔드포인트(/echo)로 접속시 WebSocketHandler 객체와 연결
+
+
+
+### 웹소켓 클라이언트
+
+```javascript
+wssocket = new WebSocket("ws://localhost:8080/mvc3/echo");//연결
+wssocket.onmessage = onMessage; //메시지를 받았을 때 function 구현
+wssocket.onclose = onClose; //소켓이 close됬을 때 function 구현
+wssocket.onopen = function () { //소켓이 연결되었을 때
+    wssocket.send($('#message').val());
+}
+```
+
+
 

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅방</title>
+    <script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="js/chat.js"></script>
+    <style>
+        #chatArea {
+            width: 200px;
+            height: 100px;
+            overflow-y: auto;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<label for="nickname">이름 : </label><input id="nickname" type="text"/>
+<input type="button" id="enterBtn" value="입장"/>
+<input type="button" id="exitBtn" value="나가기"/>
+
+<h1>대화 영역</h1>
+<div id="chatArea">
+    <div id="chatMessageArea"></div>
+</div>
+<br>
+<input type="text" id="message">
+<input type="button" id="sendBtn" value="전송">
+</body>
+</html>
