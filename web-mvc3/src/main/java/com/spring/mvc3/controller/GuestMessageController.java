@@ -2,6 +2,7 @@ package com.spring.mvc3.controller;
 
 import com.spring.mvc3.form.GuestMessage;
 import com.spring.mvc3.form.GuestMessageList;
+import com.spring.mvc3.form.GuestMessageList2;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +34,19 @@ public class GuestMessageController {
                 new GuestMessage(2, "메시지2", new Date())
         );
         return new GuestMessageList(messages);
+    }
+
+    @RequestMapping("/guestmessage/list.json")
+    @ResponseBody
+    public GuestMessageList2 listJson(){
+        return getMessageList2();
+    }
+
+    private GuestMessageList2 getMessageList2() {
+        List<GuestMessage> messages = Arrays.asList(
+                new GuestMessage(1,"메시지",new Date()),
+                new GuestMessage(2,"메시지2",new Date())
+        );
+        return new GuestMessageList2(messages);
     }
 }

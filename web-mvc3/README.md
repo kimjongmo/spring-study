@@ -39,3 +39,47 @@
 - Jaxb2RootElmentHttpMessageConverter
   - XML -> @XmlRootElement 객체 또는 @XmlType 객체로 읽기
   - @XmlRootElement 적용 객체 -> XML로 쓰기
+
+
+
+## Jackson2를 이용한 JSON 처리
+
+- Jackson2 의존 추가
+
+  ```xml
+  <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.9.3</version>
+  </dependency>
+  ```
+
+- JAXB2 때와는 달리 어노테이션을 붙이는 등의 작업이 불 필요.
+
+
+
+## 커스텀 HttpMessageConverter
+
+- \<mvc:annotation-driven>을 추가하면 기본으로 등록되는 것들이 많다.
+
+- 커스텀 HttpMessageConverter를 등록하게 되면 기본으로 등록되는 부분들이 등록되지 않는다. 따라서 아래와 같은 작업이 필요
+
+  ```java
+  @Configuration
+  @EnableWebMvc
+  public class Config extends WebMvcConfigurerAdapter {
+      
+      public void configureMessageConverter(List<HttpMessageConverter<?>> converters){
+          converters.add(new CustomHttpMessageConverter());
+          converters.add(new Jaxb2RootElementHttpMessageConverter());
+          ...
+          ...
+     
+      }
+  }
+  ```
+
+
+
+# 파일 업로드
+
