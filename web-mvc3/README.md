@@ -83,3 +83,116 @@
 
 # 파일 업로드
 
+- 파일을 업로드해야 할 경우 HTML의 폼의 enctype 속성 값을 "multipart/form-data"로 사용한다.
+- 인코딩 타입이 멀티파트를 스프링은 지원하고 있다.
+
+
+
+## MultipartResolver 
+
+- 멀티파트 형식으로 데이터가 전송된 경우, 해당 데이터를 변환해주는 역할
+- 스프링이 제공하는 멀티파트리졸버
+  - CommonsMultipartResolver :  Commons FileUpload API 이용
+  - StandardServletMultipartResolver : 서블릿 3.0의 Part를 이용
+- 등록시 이름을 "multipartResolver"로 지정해야함
+
+### Commons FileUpload 설정
+
+- 의존성 추가
+
+  ```xml
+  <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>1.4</version>
+  </dependency>
+  ```
+
+- 빈 등록
+
+    ```xml
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"></bean>
+    ```
+    
+    ```java
+    @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver =
+                new CommonsMultipartResolver();
+        return multipartResolver;
+    }
+    ```
+    
+    
+
+### 서블릿 3.0의 Part 설정
+
+- DistpatcherServlet에 Multipart 설정
+
+  ```xml
+  <servlet>
+      <servlet-name>dispatcher</servlet-name>
+      <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+      <init-param>
+          <param-name>contextClass</param-name>
+          <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+      </init-param>
+      <init-param>
+          <param-name>contextConfigLocation</param-name>
+          <param-value>com.spring.mvc3.config.**</param-value>
+      </init-param>
+      <load-on-startup>1</load-on-startup>
+      <multipart-config>
+          <location>C:\temp</location>
+          <max-file-size>-1</max-file-size>
+          <max-request-size>-1</max-request-size>
+          <file-size-threshold>1024</file-size-threshold>
+      </multipart-config>
+  </servlet>
+  ```
+
+- StandardServletMultipartResolver 빈 등록
+
+  ```xml
+  <bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver"></bean>
+  ```
+
+
+
+## 업로드한 파일 접근
+
+스프링은 파일 데이터에 접근할 수 있는 다양한 방법을 제공하고 있다.
+
+### MultipartFile 인터페이스
+
+- 업로드 한 파일 정보 및 파일 데이터를 표현
+- 업로드한 파일 데이터를 읽을 수 있다.
+
+```java
+public interface MultipartFile {
+    String getName(); //파라미터 이름
+    String getOriginalFilename();//업로드한 파일의 이름
+    String getContentType();//파일 타입
+    boolean isEmpty();// 파일 유무
+    long getSize(); // 파일 사이즈
+    byte[] getBytes() throws IOException;
+    InputStream getInputStream() throws IOException;
+    void transferTo(File var1) throws IOException, IllegalStateException;
+}
+```
+
+```java
+@RequestMapping(value = "/upload/multipartFile", method = RequestMethod.POST)
+	public String uploadByMultipartFile(@RequestParam("f") MultipartFile multipartFile,...) throws IOException{
+     	...   
+    }
+```
+
+
+
+### MultipartHttpServletRequest
+
+
+
+### 커맨드 객체를 통한 접근
+

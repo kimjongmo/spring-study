@@ -16,6 +16,12 @@
             <param-value>com.spring.mvc3.config.**</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+        <multipart-config>
+            <location>C:\temp</location> <!-- 파일 임시 저장 위치 -->
+            <max-file-size>-1</max-file-size> <!-- 파일 최대 크기 지정-->
+            <max-request-size>-1</max-request-size> <!-- Multipart 요청 데이터의 최대 크기 제한 -->
+            <file-size-threshold>1024</file-size-threshold> <!-- 임시 파일 생성 기준 -->
+        </multipart-config>
     </servlet>
     <servlet-mapping>
         <servlet-name>dispatcher</servlet-name>
