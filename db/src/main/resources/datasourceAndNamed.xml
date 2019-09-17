@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://localhost/guest?characterEncoding=utf8&amp;serverTimezone=Asia/Seoul"/>
+        <property name="password" value="1234"/>
+        <property name="user" value="kim"/>
+    </bean>
+
+
+    <bean id="jdbcMessageDao" class="com.spring.db.dao.NamedParameterJdbcMessageDao">
+        <constructor-arg name="dataSource" ref="dataSource"/>
+    </bean>
+
+</beans>

@@ -88,7 +88,18 @@
   </dependency>
   ```
 
+- 스프링 빈 생성
 
+  ```xml
+  <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+      <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+      <property name="jdbcUrl" value="jdbc:mysql://localhost/guest"/>
+      <property name="password" value="1234"/>
+      <property name="user" value="kim"/>
+  </bean>
+  ```
+
+  
 
 ## JNDI를 이용한 DataSource 설정
 
@@ -111,11 +122,181 @@
   </beans>
   ```
 
-- 태그 없이 클래스를 이용해서 DataSource 구하기
 
-  ```xml
+
+
+
+## DriverManager를 이용한 DataSource 설정
+
+- <mark>로컬 테스트 목적</mark>으로 DataSource가 필요한 경우에만 사용한다.
+- <mark>DriverManager는 커넥션 풀이 아니기 때문</mark>에 실제 운영 환경에서 사용할 경우 성능상의 문제가 발생할 수 있음.
+
+
+
+# 스프링 JDBC 지원
+
+- 일반적으로 JDBC를 사용하게 되었을 때 Connection을 구하거나 try-catch-finally 와 같은 문장이 반복된다.
+- 스프링은 위에서 예시로 봤던 바와 같이 템플릿 클래스를 제공함으로 이러한 중복된 코드를 제거한다.
+  - JdbcTemplate : 기본적인 JDBC 템플릿
+  - NamedParameterJdbcTemplate : PreparedStatement에서 이름을 가진 파라미터를 사용 가능
+  - SimpleJdbcInsert : 데이터 삽입을 위한 인터페이스를 제공하는 클래스
+  - SimpleJdbcCall : 프로시저 호출을 위한 인터페이스를 제공하는 클래스
+
+
+
+## JdbcTemplate
+
+- SQL 실행을 위한 메서드를 제공하고 있음
+
+- JdbcTemplate 클래스를 사용하기 위해서는 Datasource를 전달받아 생성한다.
+
+  ```java
+  private JdbcTemplate jdbcTemplate;
+  
+  public GuestMessageDAO(DataSource dataSource){
+      this.jdbcTemplate = new JdbcTemplate(dataSoure);
+  }
+  ```
+
+  ``` xml
+  <bean id="dataSource" class="">...</bean>
+  
+  <bean id="guestMessageDAO" class="com.spring.db.dao.JdbcMessageDao">
+  	<constructor-arg ref="dataSource"/>
+  </bean>
+  
+  <!-- 혹은 아래와 같이 조립된 상태로 설정 -->
+  
+  <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+  	<property name="dataSource" ref="dataSource"/>
+  </bean>
+  <bean id="guestMessageDAO" class="com.spring.db.dao.GuestMessageDAO">
+  	<property name="jdbcTemplate" ref="jdbcTemplate"/>	
+  </bean>
+  
   
   ```
 
   
+
+### 조회를 위한 메서드 : query()
+
+- <mark>쿼리 실행 결과를 객체 목록으로 가져올 때 사용</mark>
+
+- 조회를 위한 대표적인 메서드 종류
+
+  - query(String sql, RowMapper\<T> rowMapper);
+
+    - `sql` : 쿼리, 위치 기반 파라미터를 이용하는 PreparedStatement 쿼리 사용 가능
+
+    - `rowMapper` : 조회 결과에서 객체를 생성해주는 매퍼.
+
+  - query(String sql, Object[] args, RowMapper\<T> rowMapper);
+
+    - `args` : PreparedStatemt를 실행할 떄 사용할 파라미터 바인딩 값 목록
+
+  - query(String sql, Object[] args, int[] argTypes, RowMapper\<T> rowMapper);
+
+    - `argTypes` : 파라미터를 바인딩 할 때 사용할 SQL 타입 목록.
+
+### 컬럼을 1개만 조회하기 위한 메서드 : queryForList()
+
+- 쿼리 실행으로 가져올 데이터의 <mark>컬럼이 1개일 때 사용</mark>
+- 메서드 종류
+  - queryForList(String sql, Class\<T> elementType);
+    - `elementType`  : 조회할 데이터 타입
+  - queryForList(String sql, Object[] args ,Class\<T> elementType);
+  - queryForList(String sql, Object[] args, int[] argTypes ,Class\<T> elementType);
+
+
+
+### 데이터 튜플의 개수를 1개만 조회하기 위한 메서드 : queryForObject()
+
+- 쿼리 실행으로 가져올 데이터의 <mark>튜플의 개수가 1개</mark>일 때 사용.
+- query() 메소드와 별반 다르지 않다. 하지만 <mark>검색 결과가 1개 이상일 경우 IncorrectResultSizeDataAccessException 발생</mark>.
+
+
+
+### 삽입/ 수정/ 삭제를 위한 메서드 : update()
+
+- 검색 외에 삽입/ 수정/ 삭제 쿼리를 실행할 때에는 update() 메서드를 사용한다.
+- update() 메서드의 리턴 값은 <mark>변경된 행의 개수</mark>를 의미한다.
+
+
+
+## NamedParameterJdbcTemplate
+
+- JdbcTemplate와 동일한 기능을 제공
+
+- 단, 인덱스 기반의 파라미터가 아니라 이름 기반의 파라미터를 설정
+
+  ```java
+  String sql = "select * from guestmessage order by id limit :start,:size";
+  ```
+
+
+
+### Map을 이용한 파라미터 값 설정 메서드
+
+- JdbcTemplate에서는 Object배열을 이용하여 파라미터를 전달했지만, NamedParameterJdbcTemplate는 Map을 이용하여 파라미터 값을 설정한다.
+
+
+
+### SqlParameterSource를 이용한 파라미터 값 설정
+
+- 위에서는 Map을 이용했지만 이 대신 SqlParameterSource 인터페이스를 이용
+- SqlParameterSource 구현 클래스
+  - BeanPropertySqlParameterSource : 동일한 이름을 갖는 자바 객체의 프로퍼티 값을 이용
+  - MapSqlParameterSource : Map과 같은 방식으로 키,값 쌍으로 설정
+
+
+
+
+
+## SimpleJdbcInsert 
+
+- 쿼리를 사용하지 않고 데이터를 삽입할 수 있도록 해주는 클래스
+
+  ```java
+  public int insert(Message message) {
+      Map<String,Object> params = new HashMap<>();
+      params.put("name",message.getName());
+      params.put("message",message.getMessage());
+      params.put("creationTime",message.getCreationTime());
+      return simpleJdbcInsert.execute(params);
+  }
+  ```
+
+- SimpleJdbcInsert 기본적인 세팅
+
+  - 테이블명 지정(withTableName())
+
+    ```java
+    private SimpleJdbcInsert simpleJdbcInsert;
+    
+    public SimpleInsertMessageDao(DataSource dataSource){
+        this.simpleJdbcInsert = new SimpleJdbcInsert(dataSource);
+        this.simpleJdbcInsert.withTableName("guestmessage");
+    }
+    ```
+
+  - 컬럼 지정(usingColumns()) : 지정한 칼럼에 대해서만 값을 삽입. 이 외의 컬럼은 설정되지 않는다.
+
+    ```java
+    this.simpleJdbcInsert.usingColumns("name","message","creationTime");
+    ```
+
+### execute()를 이용한 데이터 삽입
+
+- 메서드 종류
+  - execute(Map<String,Object> args)
+    - Map을 이용하는 경우 키값의 대소문자를 구분하지 않고 컬럼명과 Map의 키 값이 일치하는지 검사
+  - execute(SqlParameterSource parameterSource)
+    - SqlParameterSource를 이용하는 경우 아래의 규칙에 따라 칼럼명의 일치 여부를 검사
+    - 지정한 컬럼명과 동일한 이름을 갖는 파라미터 값이 설정되어 있는 지 검사
+    - '\_'이 포함된 경우 '\_'를 제외한 나머지 문자열과 일치하는 파라미터 값이 설정되어 있는 검사
+
+
+
+
 
