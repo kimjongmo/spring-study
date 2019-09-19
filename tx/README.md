@@ -196,8 +196,8 @@ public interface TransactionCallback<T> {
 
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
-            <tx:method name="order" propagation="REQUIRED"/>
-            <tx:method name="get*" read-only="true"/>
+            <tx:method name="order" propagation="REQUIRED" no-rollback-for="Exception"/>
+            <tx:method name="get*" read-only="true" rollback-for="MemberNotFoundException"/>
         </tx:attributes>
     </tx:advice>
 </beans>
@@ -235,15 +235,128 @@ public interface TransactionCallback<T> {
 
   
 
+## 애노테이션 기반 설정
+
+- @Transactional 어노테이션을 이용한 설정
+- 메서드나 클래스에 적용 가능.
 
 
 
+### 설정
+
+```xml
+<tx:annotation-driven transaction-manager="transactionManager"/>
+```
+
+혹은
+
+```java
+@Configuration
+@EnableTransactionManagement
+```
 
 
 
+> 두 가지 설정 방식의 차이
+>
+> - XML 설정의 경우 'transactionManager'라는 `빈의 이름`을 지정
+> - 어노테이션 설정의 경우 PlatformTransactionManager의 `타입 값`을 보고 매칭.
 
 
 
+### 속성
+
+| 속성                | 설명                                                         | 기본값                      |
+| ------------------- | ------------------------------------------------------------ | --------------------------- |
+| transaction-manager | 사용할 PlatformTransactionManager빈의 이름. (XML 설정에만 존재) | transactionManager          |
+| proxy-target-class  | 클래스에 대해 프록시를 생성할 때 CGLIB를 이용할지 아니면 자바의 다이나믹 프록시 이용할 것인지 | false(다이나믹 프록시 사용) |
+| order               | Advice의 적용 순서                                           | Integer.MAX_VALUE           |
+
+
+
+### 트랜잭션 관리자 지정
+
+- 한 개의 어플리케이션에서 두 개 이상의 DB를 사용할 때는, TransactionManager가 여러개가 된다.
+
+- 여러 개의 DB에 동시에 변경을 가할 일이 있다면 글로벌 트랜잭션을 사용
+
+- 여러 개의 DB에 동시에 변경을 가할 일이 없다면 각 DB별로 트랜잭션 관리자를 따로 지정
+
+  ```xml
+  <bean id="memTxMgr" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  	<property name="dataSource" value="memDataSource"/>
+      <property name="propagationBehaviorName" value="PROPAGATION_REQUIRED"/>
+  </bean>
+  <bean id="orderTxMgr" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  	<property name="dataSource" value="orderDataSource"/>
+      <property name="isolationLevelName" value="ISOLATION_SERIALIZABLE"/>
+      <property name="propagationBehaviorName" value="PROPAGATION_REQUIRES_NEW"/>
+  </bean>
+  
+  <tx:annotation-driven transaction-manager="memTxMgr"/>
+  ```
+
+  - 위의 코드의 경우 @Transactional 어노테이션을 마주하게 되었을 때 memTxMgr이 관리하는 트랜잭션 범위 내에서 코드를 실행하게 된다.
+  - 문제는 orderTxMgr의 트랜잭션 범위에서 실행해야 할 코드가 @Transactional을 만나면 memTxMgr이 관리하는 범위내에서 코드를 실행하게 된다는 것이다. 
+  - 두 개 이상 정의한 상태에서 코드에 따라 @Transactional 어노테이션이 속할 트랜잭션 범위를 다르게 설정하려면 @Transactional 의`value 속성`을 이용하여 PlatformTransactionManager `빈의 이름`을 지정
+
+
+
+## 트랜잭션과 프록시
+
+- 선언적 트랜잭션은 스프링의 AOP를 이용하고 있다. 
+- 선언적 트랜잭션은 트랜잭션 처리할 때에는 프록시 객체를 생성한다
+- 프록시 객체의 역할은 TransactionTemplate의 역할.
+  - PlatformTransactionManager를 이용해서 트랜잭션을 실행 
+  - 실제 객체의 메소드를 실행. 
+  - PlatformTransactionManager에 커밋 or 롤백.
+
+
+
+# 분산 트랜잭션
+
+- 두 개 이상의 자원에 동시에 접근하는 데 트랜잭션이 필요한 경우.
+- DataSource는 서로 다르지만, 두 데이터베이스에 접근하는 코드는 단일 트랜잭션으로 처리
+- 분산 트랜잭션을 처리하기 위해서는 분산 트랜잭션 서비스를 제공해주는 트랜잭션 관리자가 필요
+  - WebLogic , JBoss는 분산 트랜잭션 서비스를 지원
+  - Tomcat과 같은 서블릿 컨테이너는 분산 트랜잭션을 지원하고 있지 않다.
+    - TransactionsEssentials나 Bitronix와 같은 트랜잭션 매니저 이용
+
+> 메시징 시스템
+>
+> - 중간에 메시징 시스템을 두고 비동기로 데이터를 동기화하는 방식을 채택. 
+> - 비동기 방식을 선택하는 이유 중의 하나는 성능.
+>   - 하나의 트랜잭션으로 묶게 되면 응답이 내려올 때까지 데이터를 처리하고 기다려야 하므로
+> - 성능보다 트랜잭션 보장을 더 엄격하게 해야한다면 글로벌 트랜잭션을 사용
+
+
+
+## TransactionsEssentials 메이븐  설정
+
+```xml
+<!-- TransactionEssentials를 RDBMS에 사용하기 위한 의존 모듈 설정 -->
+<dependency>
+    <groupId>com.atomikos</groupId>
+    <artifactId>transactions-jdbc</artifactId>
+    <version>3.9.3</version>
+</dependency>
+<!-- 스프링4 버전은 JTA 1.1을 사용한다. -->
+<dependency>
+    <groupId>javax.transaction</groupId>
+    <artifactId>jta</artifactId>
+    <version>1.1</version>
+</dependency>
+```
+
+
+
+## TransactionsEssentials와 스프링 연동
+
+- TransactionsEssentials를 이용한 JtaTransactionManager설정
+
+- TransactionsEssentials가 제공하는 클래스를 XADataSource 설정
+
+- DAO 등 스프링 빈에서 XADataSource를 사용하도록 설정
 
 
 
