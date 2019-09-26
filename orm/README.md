@@ -194,19 +194,131 @@ LocalSessionFactoryBean은 다음의 세 프로퍼티를 이용해서 하이버�
 
 
 
-## LocalSessionFactoryBean의 주요 프로퍼티
+# JPA(Java Persistence API)
+
+- JPA = 오라클에서 정의한 자바 ORM 표준
+- JPA 표준을 지워하는 프로바이더로는 하이버네이트, EclipseLink, OpenJPA 등이 존재
 
 
 
+## 설정
+
+```xml
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-entitymanager</artifactId>
+</dependency>
+```
+
+- 앞선 Hibernate와 달라진 점이라면 아티팩트id가 hibernate-core에서 hibernate-entitymanager로 바뀜.
+- hibernate-entitymanager 모듈은 하이버네이트의 JPA 프로바이더 모듈이다.
 
 
 
+## LocalContainerEntityManagerFactoryBean 설정
+
+JPA의 설정 파일인 persistence.xml에는 매핑 관련 정보만 설정. 
+
+> persistence.xml 파일을 사용하는 대신 클래스 스캔 기능을 이요해서 매핑 클래스 정보를 읽어올 수 있다.
+>
+> LocalContainerEntityManagerFactoryBean의 packagesToScan 속성을 사용
+
+> 스프링은 기본적으로 classpath:/META-INF/persistence.xml 경로에서 이 파일을 찾는다. 이 경로가 아닌 다른 경로에 위치한 파일을 사용하고 싶다면 LocalCotainerEntityEntityManagerFactoryBean을 설정할 때 persistenceXmlLocation 프로퍼티를 이용한다.
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+        http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd" version="2.1">
+    <persistence-unit name="store">
+        <class>com.spring.orm.store.domain.Item</class>
+        <class>com.spring.orm.store.domain.PaymentInfo</class>
+        <class>com.spring.orm.store.domain.PurchaseOrder</class>
+    </persistence-unit>
+</persistence>
+```
 
 
 
+EntityManager, TransactionManager, JpaVenderAdapter 설정
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <import resource="classpath:dataSource.xml"/>
+
+    <bean id="jpaVenderAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="database" value="MYSQL"/>
+        <property name="showSql" value="true"/>
+        <property name="generateDdl" value="true"/>
+    </bean>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="persistenceUnitName" value="store"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaVendorAdapter" ref="jpaVenderAdapter"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+</beans>
+```
+
+JpaVenderAdapter는 JPA 프로바이더에 알맞은 설정을 제공하기 위한 어댑터 클래스로 DB, SQL 출력 여부 등을 설정
+
+> JPA 프로바이더들이 공통으로 제공하는 프로퍼티 외에 프로퍼티를 추가하고 싶다면 LocalContainerEntityManagerFactoryBean의 jpaProperties 속성을 이용한다.
 
 
 
+## EntityManagerFactory와 EntityManager 사용
+
+Hibernate에서는 SessionFactory를 이용하여 Session을 가져와서 사용한 것처럼, JPA에서는 EntityManagerFactory에서 EntityManager 객체를 가져와 사용한다. 
+
+### EntityManagerFactory 객체를 주입 받는 방법
+
+1) xml에서 직접 EntityManagerFactory를 전달
+
+```xml
+<bean id="itemRepository" class="com.spring.orm.store.persistence.JpaItemRepository">
+    <property name="entityManagerFactory" ref="entityManagerFactory"/>
+</bean>
+```
+
+2) 어노테이션 이용
+
+```xml
+<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+```
+
+```java
+@PersistenceUnit
+private EntityManagerFactory entityManagerFactory;
+```
+
+### 현재 진행중인 트랜잭션 범위에서 EntityManager가 동작하게 만들기
+
+1) joinTransaction()
+
+```java
+EntityManager entityManager = entityManagerFactory.createEntityManager();
+entityManager.joinTransaction();// 현재 진행중인 트랜잭션에 ㅏㅁ여
+entityManager.persist(paymentInfo);
+```
+
+2) @PersistenceContext
+
+```java
+@PersistenceContext
+private EntityManager entityManager;//트랜잭션에 이미 연동된 EntityManager 사용
+```
+
+
+
+# MyBatis
 
 
 
