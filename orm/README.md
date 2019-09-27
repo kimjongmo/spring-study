@@ -320,13 +320,209 @@ private EntityManager entityManager;//트랜잭션에 이미 연동된 EntityMan
 
 # MyBatis
 
+## MyBatis란?
+
+개발자가 지정한 SQL, 저장 프로시저 , 그리고 몇 가지 고급 매핑을 지원하는 영속 프레임워크. JDBC로 처리하는 상당 부분의 코드와 파라미터 설정 및 결과 매핑을 대신한다. 
+
+스프링4 버전에는 Mybatis/ibatis 의 연동 기능이 포함되어 있지 않음. 대신 Mybatis가 직접 스프링과 Mybatis를 연동하기 위한 모듈을 제공하고 있다.  (MyBatis-Spring)
+
+- 스프링 연동을 더 쉽게할 수 있도록 도와준다.
+- 스프링 트랜잭션에 쉽게 연동
+- 마이바티스 매퍼와 SqlSesison을 다루고 다른 빈에 주입시켜준다.
+- 마이바티스 예외를 스프링의 DataAccessException으로 변환
+
+## 의존성 설정
+
+- MyBatis-Spring은 스프링의 버전에 따라 다르게 사용해야함.
+
+  MyBatis-Spring 2.0 는 스프링 5.0+ 이상을 필요로 함.
+
+  MyBatis-Spring 1.3 는 스프링 3.2.2+가 필요 
+
+```xml
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.3.25.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>4.3.25.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>1.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.6</version>
+        </dependency>
+	</dependencies>
+```
+
+## SqlSessionFactoryBean설정
+
+```xml
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="mapperLocations" value="classpath:/mappers/*.xml"/>
+</bean>
+```
+
+SqlSessionFactoryBean은 스프링의 FactoryBean를 구현한 클래스이다. 빈을 가져올 때 SqlSessionFactoryBean이 아닌 SqlSessionFactory가 리턴된다. 
+
+`mapperLocations`는 매퍼와 관련된 파일들을 지정
+
+> MyBatis-Spring 1.3 버전 이후부터는 xml 설정 파일없이도 가능하다.
+>
+> ```xml
+> <property name="configuration">
+>     <bean class="org.apache.ibatis.session.Configuration">
+>         <property name="mapUnderscoreToCamelCase" value="true"/>
+>     </bean>
+> </property>
+> ```
+
+`databaseIdProvider` 속성은 여러 개의 데이터베이스를 사용해야 할 때 설정
+
+```xml
+<!-- 예시 -->
+<bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+  <property name="properties">
+    <props>
+      <prop key="SQL Server">sqlserver</prop>
+      <prop key="DB2">db2</prop>
+      <prop key="Oracle">oracle</prop>
+      <prop key="MySQL">mysql</prop>
+    </props>
+  </property>
+</bean>
+
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="mapperLocations" value="classpath*:sample/config/mappers/**/*.xml" />
+  <property name="databaseIdProvider" ref="databaseIdProvider"/>
+</bean>
+```
+
+## Transaction 설정
+
+```xml
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+```
+
+여기에서 프로퍼티로 넘겨주는 `dataSource`가 위의 `SqlSesissionFactoryBean`의 `dataSource`와 같아야 한다는 것 만 주의한다.
+
+## SqlSessionTemplate
+
+`SqlSessionTemplate`은 `SqlSession`을 구현하고 코드에서 `SqlSession`을 대체하는 역할을 한다. 그리고 아래와 같은 특징들을 지닌다.
+
+- 쓰레드에 안전하여 여러개의 DAO나 매퍼에서 공유할 수 있다. 
+- `SqlSession`이 현재의 트랜잭션에서 사용될 수 있도록 한다.
+- 필요한 시점에 세션을 닫고, 커밋하거나 롤백하는 것을 포함한 세션의 생명주기를 관리한다.
+- 마이바티스 예외를 스프링의 `DataAccessException`으로 변환
+
+```xml
+<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+    <constructor-arg ref="sqlSessionFactory"/>
+</bean>
+```
+
+위와 같이 설정한 후 필요한 DAO에 주입하여 사용한다.
+
+```xml
+<bean id="itemDao" class="com.spring.orm.store.dao.MyBatisItemDao">
+	<property name="sqlSession" ref="sqlSessionTemplate"/>
+</bean>
+```
+
+```java
+@Repository
+public class MyBatisItemDao implements ItemDao {
+
+	private SqlSession sqlSession;
+
+	public void setSqlSession(SqlSession sqlSession) {
+		this.sqlSession = sqlSession;
+	}
+
+	@Override
+	public Item findById(Integer itemId) {
+		Item item = (Item) sqlSession.selectOne(
+				"net.madvirus.spring4.chap13.store.dao.ItemDao.findById",
+				itemId);
+		return item;
+	}
+}
+```
+
+### SqlSessionDaoSupport
+
+SqlSessionDaoSupport는 스프링과 연동된 SqlSession을 제공하는 getSqlSession()메서드를 포함.
+
+```xml
+<bean id="itemDao2" class="com.spring.orm.store.dao.MyBatisItemDao2">
+    <property name="sqlSessionTemplate" ref="sqlSessionTemplate"/>
+</bean>
+```
+
+```java
+public class MyBatisItemDao2 extends SqlSessionDaoSupport implements ItemDao {
+	@Override
+	public Item findById(Integer itemId) {
+		Item item = (Item) getSqlSession().selectOne(
+				"com.spring.orm.store.dao.ItemDao.findById",
+				itemId);
+		return item;
+	}
+}
+```
 
 
 
 
 
+## 매퍼 주입
 
+데이터 접근 객체인 DAO를 만드는 것보다 매퍼를 직접 주입받아서 작성하면 `SqlSession` 세션을 선언하거나 생성하거나 열고 닫을 필요가 없다.
 
+### 매퍼 등록
+
+매퍼를 등록하는 방법은 `MapperFactoryBean`을 만드는 것
+
+```xml
+<bean id="itemMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <property name="mapperInterface" value="com.spring.orm.store.mapper.ItemMapper"/>
+    <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+</bean>
+```
+
+`ItemMapper`가 mapperInterface와 같은 경로의 클래스패스 혹은 `SqlSessionFactoryBean`의 `configLocation` 프로퍼티에 설정된 경로에 마이바티스 XML 매퍼 파일을 가지고 있으면 `MapperFactoryBean`이 자동으로 파싱한다. 
+
+### 매퍼 스캔
+
+위와 같이 매퍼를 일일히 등록하지 않고 자동스캔기능을 이용하여 사용할 수 있다.
+
+- \<mybatis:scan/> 
+  - 빈 이름은 스프링의 디폴트 명명규칙 전략 혹은 지정된 이름
+- @MapperSacne 
+- MapperScannerConfigurer
 
 
 
