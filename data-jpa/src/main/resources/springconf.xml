@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/data/jpa
+       http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+    <context:annotation-config />
+
+    <tx:annotation-driven />
+
+    <jpa:repositories base-package="com.spring.jpa.domain">
+    </jpa:repositories>
+
+    <bean id="updateEmployeeService"
+          class="com.spring.jpa.application.UpdateEmployeeServiceImpl">
+    </bean>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl"
+                  value="jdbc:mysql://localhost/hrdb?characterEncoding=utf8" />
+        <property name="user" value="spring4" />
+        <property name="password" value="spring4" />
+    </bean>
+
+    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+    <bean id="jpaVendorAdapter"
+          class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="database" value="MYSQL" />
+        <property name="showSql" value="true" />
+    </bean>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="jpaVendorAdapter" ref="jpaVendorAdapter" />
+        <property name="packagesToScan">
+            <list>
+                <value>com.spring.jpa.domain</value>
+            </list>
+        </property>
+        <!-- <property name="jpaProperties"> -->
+        <!-- <value> -->
+        <!-- hibernate.format_sql = true -->
+        <!-- </value> -->
+        <!-- </property> -->
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+
+    <bean id="jpaEmployeeListService"
+          class="com.spring.jpa.application.JpaEmployeeListService">
+    </bean>
+
+<!--    <bean id="specEmployeeListService"-->
+<!--          class="com.spring.jpa.application.SpecEmployeeListService">-->
+<!--    </bean>-->
+
+    <bean id="updateTeamService"
+          class="com.spring.jpa.application.UpdateTeamServiceImpl">
+    </bean>
+</beans>
