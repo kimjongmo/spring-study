@@ -80,8 +80,6 @@ public interface UserRepository extends Repostiory<User,Long>{
 }
 ```
 
-
-
 ## 조회 메서드
 
 인터페이스에 메서드이름을 어떻게 만드냐에 따라서 조회쿼리가 달라진다. 기본적으로 조회 메서드는 find로 시작
@@ -216,3 +214,62 @@ public List<Employee> findByTeam_Name(String teamName);//_는 중첩 프로퍼�
 > */
 >
 > 전체 개수나 전체 페이지 개수 등의 정보가 필요없다면 리턴 타입으로 Page를 사용하지 않아야 불필요하게 count 쿼리를 실행하지 않는다. 
+
+## 저장 메서드 save()
+
+## 삭제 메서드 delete()
+
+
+
+# @Query를 이용한 JPQL/네이티브 쿼리 사용
+
+## 조회
+
+@Query 에노테이션을 이용하면 조회 메서드에서 실행할 쿼리를 직접 지정할 수 있다. @Query 에노테이션은 실행할 JPQL을 값으로 갖는다. 
+
+```java
+@Query("select * from Employee e where e.employeeNuber=?1 or e.name like %?2%")
+public Employee findByEmployeeNumberOrNameLike(String empNum, String name);
+
+@Query("select * from Employee e where e.birthYear < :year order by e.birthYear")
+public List<Employee> findEmployeeBornBefore(@Param("year") int year);
+
+@Query("select * from Employee e where e.birthYear < :year")
+public List<Employee> findEmployeeBornBefore(@Param("year") int year,Sort sort);
+
+//orderby 절 뒤에 Sort로 지정한 정렬 순서를 추가한다.
+@Query("select * from Employee e where e.birthYear < :year order by e.birthYear")
+public List<Employee> findEmployeeBornBefore2(@Param("year") int year,Sort sort);
+```
+
+## 수정
+
+@Modifying 에노테이션을 추가.
+
+```java
+@Modifying
+@Query("update Team t set t.name = ?1")
+public int updateName(String name);
+```
+
+수정 쿼리 메서드는 쿼리 실행 결과로 수정된 행의 개수를 리턴한다.
+
+트랜잭션이 끝나기 전 수정쿼리를 날리면 DB에는 이가 적용되지만 기존의 엔티티는 변경 전인 상태이므로, 이 엔티티를 조회해도 수정된 내용이 적용되어 있지 않다. 이 상황을 해결하는 방법으로 clearAutomatically 속성을 이용하면 쿼리를 실행 후 영속성 컨텍스트에 존재하는 엔티티를 삭제함으로 다시 DB에 요청을 하게 될 것이다.
+
+```java
+@Modifying(clearAutomatically=true)
+```
+
+## 네이티브 쿼리
+
+네이티브 쿼리를 실행하고 싶다면 ,@Query 에노테이션의 값으로 네이티브 쿼리를 입력하고 nativeQuery 속성의 값을 true로 지정한다
+
+```java
+@Query(value="select * from Team where Name like %?1%",nativeQuery=true)
+List<Team> findByNameLike(Strin name);
+```
+
+# Specification
+
+상황에 따라 다양한 조건을 조합해서 검색 조건을 생성해야 할 때 사용
+
