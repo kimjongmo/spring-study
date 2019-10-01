@@ -271,5 +271,205 @@ List<Team> findByNameLike(Strin name);
 
 # Specification
 
-상황에 따라 다양한 조건을 조합해서 검색 조건을 생성해야 할 때 사용
+다양한 조건을 조합해서 검색 조건을 생성해야할 때가 있다.
+
+- from Employee e where (e.name = 검색어 or e.employeeNumber = 검색어)
+- from Employee e where (e.name = 검색어 or e.employeeNumber = 검색어) and e.team.id = 팀ID
+
+이러한 쿼리들을 일일이 만들게 된다면 복잡해질수록 메서드의 수가 증가하게 된다. 그리고 코드도 매우 복잡해질 가능성이 크다. 이러한 상황 해결하기 위해 `JPA` 에서는 `Criterial API`를 사용한다.
+
+```java
+public class JpaEmployeeListService implements EmployeeListService{
+    @PersistenceUnit
+    private EntityManagerFactory entityManagerFactory;
+    private EmployeeRepository employeeRepository;
+    
+    @Transactional
+    @Override
+    public List<Employee> getEmployee(String keyword, Long teamId){
+        CriteriaBuilder cb = entityManagerFactory.getCriteriaBuilder();
+        
+        CriteriaQuery<Employee> query = cb.createQuery(Employee.class);
+        Root<Employee> employee = query.from(Employee.class);
+        query.select(employee);
+        
+        if(hasValue(keyword) || hasValue(teamId)){
+            if(hasValue(keyword) && !hasValue(teamId)){
+                query.where(cb.or(
+                    cb.equal(employee.get("name"),keyword),
+                    cb.equal(employee.get("employeeNumber"),keyword)));
+            }else if(!hasValue(keyword)&& hasValue(teamId)){
+                query.where(cb.equal(employee.get("team"),teamId));
+            }else {
+                query.where(cb.and(
+                	cb.or(cb.equal(employee.get("name"),keyword),
+                    	cb.equal(employee.get("employeeNumber"),keyword)),
+                    cb.equal(employee.get("team").get("id"),teamId)
+                ));
+            }
+        }else {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Cal..)
+        	/****/
+        }
+        
+        return employeeRepository.findAll(query);
+    }
+}
+```
+
+위와 같은 코드를 통해서 동적인 쿼리를 만들어 낼 수 있지만 아래와 같은 단점이 존재한다.
+
+- DB에 대한 직접 접근이 필요 없음에도 `Criteria AP`I를 사용하기 위해 `EntityManagerFactory`를 참조해야한다.
+- 스프링 데이터 JPA는 피라지터리 메서드의 파라미터로 `CriteriaQuery` 타입을 지원하지 않는다
+
+두 번째 단점이 중요하다. 일단 CriteriaQuery를 파라미터로서 지원안한다. 대신 `Specification` 타입이 존재한다. 이걸 사용하면 `Criteria API` 와 같은 검색 조건 조합을 만들 수 있으면서도 `EntityManagerFactory`라던지 `CriteriaBuilde`r 등 직접 사용할 필요가 없다.
+
+
+
+`Specification`을 이용해서 검색 조건을 지정하려면 다음과 같은 작접을 한다
+
+- `Specification`을 입력 받도록 `Repostiroy` 인터페이스 정의
+- 검색 조건을 모아 놓은 클래스 믄들기
+- 검색 조건을 조합한 Specification 인스턴스를 이용해서 검색
+
+
+
+## 리파지터리 인터페이스에 파라미터 추가
+
+```java
+public List<Employee> findAll(Specification<Employee> spec, Sort sort);
+```
+
+
+
+## Specification을 생성해주는 클래스 만들기
+
+Specification의 정의는 아래와 같이 되어 있다.
+
+```java
+public interface Specification<T>{
+    Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb);
+}
+```
+
+이 Specification을 생성하는 클래스는 아래와 같이 만들 수 있다.
+
+```java
+public class EmployeeSpec{
+    public static Specification<Employee> nameEq(final String name){
+       	return (employee,cq,cb)->cb.equal(root.get("name"),name);
+    }
+    public static Specification<Employee> employeeNumberEq(final String num){
+        return (employee,cq,cb)->cb.equal(root.get("employeeNumber"),num);
+    }
+}
+```
+
+
+
+## 검색 조건 조합해서 리파지터리 사용
+
+검색 조건별로 Sepcification 객체를 생성해주는 클래스를 만들면 다음과 같이 Repository에 전달할 Specification객체를 생성할 수 있다.
+
+```java
+List<Employee> empList = employeeRepository.findAll(EmployeeSpec.nameEq(name));
+```
+
+검색 조건을 복합적으로 할 때에는 아래와 같이 And, or로 조합할 수 있다.
+
+```java
+Specifications<Employee> specs = Specifications.where(spec1);
+Specifications<Employee> andSpecs = specs.and(spec2);
+List<Employee> empList = employeeRepository.findAll(andSpecs);
+```
+
+`Specifications.where`메서드는 Sepcification을 파라미터로 전달받고 검색 조건을 조합할 수 있는 `Specifications`을 객체를 리턴한다. 
+
+> Specifications 을 실제로 사용하려고 보니 @Deprecated 되어 있다.
+>
+> 이제는 Specification 클래스에 들어있는 것을 확인했다.
+
+`and()`메서드는 검색 조건을 AND로 조합한 새로운 Specifications 객체를 리턴한다.
+
+`or()` 메서드는 검색 조건을 OR로 조합할 때 사용
+
+
+
+# 리파지터리 기본 제공 인터페이스
+
+리파지터리의 인터페이스는 기본인 메서드(save, findOne, findAll)를 이미 구현한 인터페이스를 제공해주고 있다. 
+
+
+
+## CrudRepository 인터페이스
+
+```java
+public interface CrudRepository<T, ID> extends Repository<T, ID> {
+    <S extends T> S save(S var1);
+    <S extends T> Iterable<S> saveAll(Iterable<S> var1);
+    Optional<T> findById(ID var1);
+    boolean existsById(ID var1);
+    Iterable<T> findAll();
+    Iterable<T> findAllById(Iterable<ID> var1);
+    long count();
+    void deleteById(ID var1);
+    void delete(T var1);
+    void deleteAll(Iterable<? extends T> var1);
+    void deleteAll();
+}
+```
+
+`CrudRepository`는 위와 같이 이미 메서드를 정의되어 있다.
+
+## PagingAndSortingRepository 인터페이스
+
+```java
+public interface PagingAndSortingRepository<T, ID> extends CrudRepository<T, ID> {
+    Iterable<T> findAll(Sort var1);
+    Page<T> findAll(Pageable var1);
+}
+```
+
+`PagingAndSortingRepository`인터페이스는 `CrudRepository`인터페이스에 위와 같은 메서드가 추가되었다.
+
+
+
+## JpaRepository 인터페이스
+
+```java
+public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
+    List<T> findAll();
+    List<T> findAll(Sort var1);
+    List<T> findAllById(Iterable<ID> var1);
+    <S extends T> List<S> saveAll(Iterable<S> var1);
+    void flush();
+    <S extends T> S saveAndFlush(S var1);
+    void deleteInBatch(Iterable<T> var1);
+    void deleteAllInBatch();
+    T getOne(ID var1);
+    <S extends T> List<S> findAll(Example<S> var1);
+    <S extends T> List<S> findAll(Example<S> var1, Sort var2);
+}
+```
+
+리턴 타입이 `List`인 조회 메서드와 `flush()`와 같은 메서드가 추가되어있다.
+
+
+
+## JpaSpecificationExecutor 인터페이스
+
+방금 배운 Specification도 선언된 인터페이스가 있다.
+
+```java
+public interface JpaSpecificationExecutor<T> {
+    Optional<T> findOne(@Nullable Specification<T> var1);
+    List<T> findAll(@Nullable Specification<T> var1);
+    Page<T> findAll(@Nullable Specification<T> var1, Pageable var2);
+    List<T> findAll(@Nullable Specification<T> var1, Sort var2);
+    long count(@Nullable Specification<T> var);
+}
+```
+
+
 

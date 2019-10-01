@@ -84,4 +84,17 @@ public class Employee {
     public void changeTeam(Team newTeam){
 
     }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", employeeNumber='" + employeeNumber + '\'' +
+                ", address=" + address +
+                ", birthYear=" + birthYear +
+                ", team=" + team +
+                ", joinedDate=" + joinedDate +
+                '}';
+    }
 }

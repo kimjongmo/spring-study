@@ -25,14 +25,15 @@
 
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
           destroy-method="close">
-        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver" />
         <property name="jdbcUrl"
-                  value="jdbc:mysql://localhost/hrdb?characterEncoding=utf8" />
-        <property name="user" value="spring4" />
-        <property name="password" value="spring4" />
+                  value="jdbc:mysql://localhost/shop?characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=Asia/Seoul" />
+        <property name="user" value="kim" />
+        <property name="password" value="1234" />
     </bean>
 
-    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+    <bean
+            class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
 
     <bean id="jpaVendorAdapter"
           class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
@@ -49,11 +50,11 @@
                 <value>com.spring.jpa.domain</value>
             </list>
         </property>
-        <!-- <property name="jpaProperties"> -->
-        <!-- <value> -->
-        <!-- hibernate.format_sql = true -->
-        <!-- </value> -->
-        <!-- </property> -->
+         <property name="jpaProperties">
+             <value>
+             hibernate.format_sql = true
+             </value>
+         </property>
     </bean>
 
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
@@ -64,11 +65,11 @@
           class="com.spring.jpa.application.JpaEmployeeListService">
     </bean>
 
-<!--    <bean id="specEmployeeListService"-->
-<!--          class="com.spring.jpa.application.SpecEmployeeListService">-->
-<!--    </bean>-->
-
-    <bean id="updateTeamService"
-          class="com.spring.jpa.application.UpdateTeamServiceImpl">
+    <bean id="specEmployeeListService"
+          class="com.spring.jpa.application.SpecEmployeeListService">
     </bean>
+
+<!--    <bean id="updateTeamService"-->
+<!--          class="com.spring.jpa.application.UpdateTeamServiceImpl">-->
+<!--    </bean>-->
 </beans>
