@@ -14,7 +14,7 @@ public class UpdateEmployeeServiceImpl implements UpdateEmployeeService {
 	@Transactional
 	@Override
 	public void updateEmployee(UpdateRequest updateReq) {
-		Employee employee = emploeeRepository.findOne(updateReq.getEmployeeId());
+		Employee employee = emploeeRepository.findById(updateReq.getEmployeeId());
 		if (employee == null)
 			throw new EmployeeNotFoundException();
 

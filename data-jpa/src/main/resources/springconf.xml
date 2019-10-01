@@ -16,7 +16,7 @@
 
     <tx:annotation-driven />
 
-    <jpa:repositories base-package="com.spring.jpa.domain">
+    <jpa:repositories base-package="com.spring.jpa.repository">
     </jpa:repositories>
 
     <bean id="updateEmployeeService"

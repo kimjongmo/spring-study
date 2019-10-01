@@ -1,5 +1,6 @@
 package com.spring.jpa;
 
+import com.spring.jpa.application.EmployeeListService;
 import com.spring.jpa.application.SpecEmployeeListService;
 import com.spring.jpa.domain.Employee;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -10,8 +11,8 @@ public class Main {
     public static void main(String[] args) {
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext("springconf.xml");
 
-        SpecEmployeeListService service =
-                ctx.getBean("specEmployeeListService",SpecEmployeeListService.class);
+        EmployeeListService service =
+                ctx.getBean("specEmployeeListService",EmployeeListService.class);
 
         List<Employee> list = service.getEmployee("kim",null);
 

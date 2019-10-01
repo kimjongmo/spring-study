@@ -22,7 +22,7 @@ public class Employee {
     @AttributeOverrides({
             @AttributeOverride(name="address1",column = @Column(name="HOME_ADDR1")),
             @AttributeOverride(name="address2",column = @Column(name="HOME_ADDR2")),
-            @AttributeOverride(name="zipcode",column = @Column(name="HOME_ZIPCODE"))
+            @AttributeOverride(name="zipCode",column = @Column(name="HOME_ZIPCODE"))
     })
     private Address address;
 

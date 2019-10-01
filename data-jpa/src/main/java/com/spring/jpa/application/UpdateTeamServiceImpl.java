@@ -19,7 +19,7 @@ public class UpdateTeamServiceImpl implements UpdateTeamService {
 	@Transactional
 	@Override
 	public void udpateName(Long teamId, String newName) {
-		Team team = teamRepository.findOne(teamId);
+		Team team = teamRepository.findById(teamId);
 		if (team == null)
 			throw new TeamNotFoundException("No Team for ID[" + teamId + "]");
 		System.out.println("변경 전: " + team.getName());

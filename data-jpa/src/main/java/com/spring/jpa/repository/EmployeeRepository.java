@@ -8,7 +8,9 @@ import org.springframework.data.repository.Repository;
 import java.util.List;
 
 public interface EmployeeRepository extends Repository<Employee, Long> {
-    public Employee save(Employee emp);
-    public Employee findOne(Long id);
-    public List<Employee> findAll(Specification<Employee> spec);
+    Employee save(Employee emp);
+
+    Employee findById(Long id);
+
+    List<Employee> findAll(Specification<Employee> spec);
 }
