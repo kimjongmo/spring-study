@@ -473,3 +473,11 @@ public interface JpaSpecificationExecutor<T> {
 
 
 
+# 커스텀 구현 추가하기
+
+스프링 데이터 JPA 는 리턴 타입으로 Option 타입을 지원하지 않는다. 
+
+
+
+## 단일 리파지터리를 위한 구현 클래스 등록
+
