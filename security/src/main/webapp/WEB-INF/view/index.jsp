@@ -16,7 +16,10 @@
     <li><a href="<c:url value='/manager/main'/>">/manager/main</a></li>
     <li><a href="<c:url value='/admin/main'/>">/admin/main</a></li>
     <sec:authorize access="isAuthenticated()">
-        <li><a href="<c:url value='/j_spring_security_logout'/>">/j_spring_security_logout</a></li>
+        <form action="<c:url value='/logout'/>" method="post">
+            <sec:csrfInput/>
+            <input type="submit" value="로그아웃">
+        </form>
     </sec:authorize>
 </ul>
 

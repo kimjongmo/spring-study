@@ -153,3 +153,43 @@
 
 \<intercept-url> 태그로 입력 받은 설정을 사용해서 FilterSecurityInterceptor 필터를 생성,\<form-login> 설정을 이용해서 폼 기반 로그인 요청을 처리하는 UsernamePasswordAuthenticationFilter를 생성,\<logout> 설정은 LogoutFilter를 생성한다.  FilterChainProxy는 클라이언트의 요청이 오면 이 체인을 이용해서 이러한 필터체인들을 이용해서 접근제어를 하게 되는 것이다.
 
+
+
+## 스프링 시큐리티 커스텀 태그
+
+스프링 시큐리티가 제공하는 커스텀 태그 라이브러리 설정
+
+```jsp
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+```
+
+
+
+### sec:authorize
+
+현재 사용자가 특정 권한이 있으면 \<sec:authorize> 안에 내용을 보여주는 기능을 제공한다.
+
+```jsp
+<sec:authorize access="isAuthenticated()">
+	<sec:authentication property="name"/>님 환영합니다.
+</sec:authorize>
+```
+
+
+
+### sec:authentication
+
+현재 접속한 사용자의 인증 정보를 나타내며 property 속성을 이용해서 인증 정보의 속성을 사용할 수 있다.
+
+```jsp
+<sec:authentication property="name"/>님 환영합니다.
+```
+
+
+
+
+
+
+
+
+
