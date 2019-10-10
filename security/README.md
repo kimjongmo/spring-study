@@ -145,3 +145,11 @@
 </filter-mapping>
 ```
 
+
+
+### FilterChainProxy
+
+스프링 시큐리티 네임스페이스를 사용하면 내부적으로 FilterChainProxy 객체를 스프링 빈으로 등록한다. 그리고 등록된 빈의 이름이 위의 설명한 "springSecurityFilterChain"이다. 위에서 설명했듯이 여러 보안 관련 서블릿 필터를 묶어서 실행한다
+
+\<intercept-url> 태그로 입력 받은 설정을 사용해서 FilterSecurityInterceptor 필터를 생성,\<form-login> 설정을 이용해서 폼 기반 로그인 요청을 처리하는 UsernamePasswordAuthenticationFilter를 생성,\<logout> 설정은 LogoutFilter를 생성한다.  FilterChainProxy는 클라이언트의 요청이 오면 이 체인을 이용해서 이러한 필터체인들을 이용해서 접근제어를 하게 되는 것이다.
+
