@@ -399,3 +399,19 @@ FilterSecurityInterceptor는 체인의 가장 마지막에 위치한다. 앞쪽�
 - isRememberMe()
 - isFullyAuthenticated()
 - hasIpAddress
+
+# 상황별 스프링 시큐리티 설정
+
+실제 프로젝트에 적용하려며 상황에 맞게 교체하거나 설정해야 하는 부분들이 있다. 
+
+## 일부 경로 스프링 시큐리티 적용 안하기
+
+스프링 시큐리티 웹 모듈은 필터를 이용해서 접근을 제어한다. 여기서 CSS, JS, img 등의 요청은 접근 제어 대상이 아니기 때문에 보안 필터 체인을 적용하지 않아도 된다.
+
+```xml
+<sec:http pattern="/css/**" security="none"/>
+<sec:http pattern="/js/**" security="none"/>
+<sec:http pattern="/img/**" security="none"/>
+```
+
+이렇게 설정하면 FilterSecurityInterceptor가 적용되지 않는다. 단 보안 필터 체인을 적용하지 않는다는 것은 SecurityContextPersistenceFilter도 적용하지 않는다 것을 뜻한다.  따라서 SecurityContextHolder로부터 SecurityContext를 구할 수 없다.
