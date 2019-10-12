@@ -386,3 +386,16 @@ FilterSecurityInterceptor는 체인의 가장 마지막에 위치한다. 앞쪽�
 
 
 
+# 웹 요청 인가 설정 표현식
+
+\<intercept-url> 태그의 access 속성에서는 코드에 보여준 것 말고도 접근제어를 위해 사용할 수 있는 다양한 표현식을 제공하고 있다.
+
+- hasRole, hasAuthority
+- hasAnyRole, hasAnyAuthority
+- permitAll
+- denyAll
+- isAnonymous()
+- isAuthenticated()
+- isRememberMe()
+- isFullyAuthenticated()
+- hasIpAddress
