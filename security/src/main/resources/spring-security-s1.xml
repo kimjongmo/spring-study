@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/security
+       http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://localhost/memberdb?characterEncoding=utf8"/>
+        <property name="user" value="kim"/>
+        <property name="password" value="1234"/>
+    </bean>
+
+    <bean id="customUserDetailsService"
+          class="com.spring.security.s1.custom.CustomUserDetailsService"/>
+
+    <bean id="customAuthenticationProvider"
+          class="com.spring.security.s1.custom2.CustomAuthenticationProvider"/>
+
+    <bean id="passwordEncoder"
+          class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+    <sec:authentication-manager alias="authenticationManager">
+        <sec:authentication-provider ref="customAuthenticationProvider"/>
+
+        <sec:authentication-provider
+                user-service-ref="customUserDetailsService"/>
+
+        <sec:authentication-provider>
+            <sec:jdbc-user-service data-source-ref="dataSource"
+                                   id="jdbcUserService"/>
+        </sec:authentication-provider>
+    </sec:authentication-manager>
+
+    <sec:http use-expressions="true">
+        <sec:access-denied-handler error-page="/security/accessDenied"/>
+        <sec:intercept-url pattern="/user/loginform" access="permitAll"/>
+        <sec:intercept-url pattern="/user/login" access="permitAll"/>
+        <sec:intercept-url pattern="/admin/usermanager/**"
+                           access="hasAuthority('USER_MANAGER')"/>
+        <sec:intercept-url pattern="/member/**" access="isAuthenticated()"/>
+        <sec:intercept-url pattern="/**" access="permitAll"/>
+        <sec:form-login
+                login-page="/user/loginform"
+                login-processing-url="/user/login"
+                username-parameter="userid"
+                password-parameter="password"
+                default-target-url="/index"
+                authentication-failure-url="/user/loginform?error=true"
+        />
+        <sec:logout logout-url="/user/logout"/>
+    </sec:http>
+</beans>

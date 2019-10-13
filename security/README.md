@@ -210,7 +210,7 @@
 
 
 
-## SecurityContext, SecurityContextHolder, Authentication, GratedAuthority
+## SecurityContext, SecurityContextHolder, Authentication, GrantedAuthority
 
 Authentication은 시큐리티에서 현재 어플리케이션에 접근한 사용자(브라우저, REST로 접근한 외부 시스템)의 보안 관련 정보를 보관하는 역할을 한다. 사용자의 인증 여부, 권한, 이름 및 principal에 대한 정보를 제공한다. 
 
@@ -415,3 +415,53 @@ FilterSecurityInterceptor는 체인의 가장 마지막에 위치한다. 앞쪽�
 ```
 
 이렇게 설정하면 FilterSecurityInterceptor가 적용되지 않는다. 단 보안 필터 체인을 적용하지 않는다는 것은 SecurityContextPersistenceFilter도 적용하지 않는다 것을 뜻한다.  따라서 SecurityContextHolder로부터 SecurityContext를 구할 수 없다.
+
+
+
+## DB를 이용한 인증 처리
+
+외부에 있는 저장소를 이용하여 인증 정보를 가져올 수 있도록 설정하는 것이 쉽다.
+
+### 사용자 및 권한 매핑 DB 테이블 설정
+
+유저 테이블 (유저 정보 + 권한에 대한 정보)
+
+
+
+### 스프링 시큐리티 설정
+
+데이터베이스를 이용해서 인증을 수행할 수 있도록 아래와 같은 설정을 추가한다.
+
+```xml
+<bean id="dataSource" class="com~~">
+	
+</bean>
+<sec:authentication-manager alias="authenticationManager">
+	<sec:authentication-provider>
+    	<sec:jdbc-user-service data-source-ref="dataSource"/>
+    </sec:authentication-provider>
+</sec:authentication-manager>
+```
+
+이는 인증에 필요한 사용자 정보DB에 연결할 dataSource를 지정하는 것이다. 
+
+
+
+### 데이터 준비 및 스프링 MVC 설정
+
+...
+
+
+
+## DB를 이용한 인증 처리 구조
+
+AuthenticationManager 구현 클래스인 ProviderManager는 AuthenticationProvider에 인증 처리를 위임한다. DB를 이용해서 인증을 처리하기 위해 \<jdbc-user-service> 태그를 설정했다면 AuthenticationProvider의 구현 클래스로 DaoAuthenticationProvider를 사용한다.
+
+DaoAuthenticationProvider는 사용자 정보를 읽어올 때 UserDetailsService 타입의 객체를 사용한다. DaoAuthenticationProvider의 authenticate() 메서드는 다음과 같은 과정을 거친다.
+
+1. UserDetailsService의 loadUserByUsername() 메서드로 사용자 아이디에 해당하는 UserDetails 객체를 구한다.
+2. 입력한 암호가 UserDetails 객체의 getPassword()로 구한 암호와 일치하는지 비교
+3. 암호가 일치하면 UserDetails객체로부터 Authentication 객체를 생성해서 리턴.
+
+
+
