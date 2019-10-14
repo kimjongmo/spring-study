@@ -9,12 +9,12 @@
 
     <mvc:default-servlet-handler />
 
-    <mvc:view-controller path="/index" view-name="s1/index" />
+    <mvc:view-controller path="/index" view-name="index" />
     <mvc:view-controller path="/admin/usermanager/main"
-                         view-name="s1/usermanagerMain" />
-    <mvc:view-controller path="/member/main" view-name="s1/memberMain" />
-    <mvc:view-controller path="/user/loginform" view-name="s1/user/loginForm" />
-    <mvc:view-controller path="/security/accessDenied" view-name="s1/security/accessDenied" />
+                         view-name="usermanagerMain" />
+    <mvc:view-controller path="/member/main" view-name="memberMain" />
+    <mvc:view-controller path="/user/loginform" view-name="user/loginForm" />
+    <mvc:view-controller path="/security/accessDenied" view-name="security/accessDenied" />
 
     <bean id="viewResolver"
           class="org.springframework.web.servlet.view.InternalResourceViewResolver">
